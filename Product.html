@@ -499,7 +499,7 @@ function Walkthrough({ stage, onDismiss }) {
       <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
         <div style={{ fontSize: 10, color: 'var(--t3)', lineHeight: 1.6 }}>{t.signals}</div>
       </div>
-      <a href="User Guide.html" target="_blank" style={{ fontSize: 11, color: 'var(--t2)', textDecoration: 'none', marginTop: 4 }}>
+      <a href="learn.html" target="_blank" style={{ fontSize: 11, color: 'var(--t2)', textDecoration: 'none', marginTop: 4 }}>
         Full guide →
       </a>
     </div>
@@ -1208,7 +1208,7 @@ function App() {
         view={view}
         setView={v => { setView(v); setSimOpen(false); }}
         onSimOpen={() => setSimOpen(o => !o)}
-        onGuide={() => window.open('User Guide.html', '_blank')}
+        onGuide={() => window.open('learn.html', '_blank')}
       />
       {simOpen && (
         <WeekSimPanel simWeek={simWeek} setSimWeek={setSimWeek} onClose={() => setSimOpen(false)} />
