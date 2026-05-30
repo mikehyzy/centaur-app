@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centaur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --bg: #0c0f14;
+      --surface: #131c26;
+      --surface2: #182131;
+      --surface3: #1d2838;
+      --border: #1d2b3a;
+      --borderhi: #273950;
+      --t1: #d8e3ef;
+      --t2: #647d95;
+      --t3: #3a5060;
+      --accent: #2ecbb5;
+      --direct: oklch(0.70 0.065 215);
+      --delegate: oklch(0.70 0.065 170);
+      --defer: oklch(0.70 0.065 265);
+      --ui: 'IBM Plex Sans', ui-sans-serif, sans-serif;
+      --dp: 'Instrument Serif', Georgia, serif;
+      --r: 3px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body, #root { height: 100%; }
+    body { background: var(--bg); color: var(--t1); font-family: var(--ui); -webkit-font-smoothing: antialiased; }
+    ::placeholder { color: var(--t3); }
+    textarea:focus, input:focus { outline: none; }
+    [contenteditable][data-ph]:empty:before { content: attr(data-ph); color: var(--t3); pointer-events: none; }
+    mark { background: rgba(46, 203, 181, 0.16); color: inherit; border-radius: 2px; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+    .fade-in { animation: fadeIn 0.35s ease forwards; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+/* ─────────────────────────────────────────────
+   SEED DATA
+   ───────────────────────────────────────────── */
+const SEED = [
+  { id:'s1a', week:1, date:'May 1',  cls:'Direct',   excerpt:'Mapped the onboarding information architecture solo, no AI involved.',
+    framing:'The onboarding needs a fork at step 2: solo users vs team leads. Solo path skips invite entirely. Team path: Invite→Setup→Core Loop. Solo: Setup→Core Loop. I designed this whole flow myself before asking anyone.',
+    ai:'', signals:{ framingLength:218, framingTimeSeconds:612, timeToAcceptanceSeconds:0, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s1b', week:1, date:'May 2',  cls:'Delegate', excerpt:'Stress-tested APAC market entry timing with AI as a sounding board.',
+    framing:'Japan first over Australia. AI adoption anxiety is higher there. Our instrument-not-assistant framing maps to precision culture. I have a strong view — just want to pressure-test the counter-arguments.',
+    ai:'Japan vs Australia for APAC entry: Japan has stronger AI sensitivity but longer enterprise sales cycles. Australia has faster procurement. Your framing holds for SMB motion, less so for enterprise. Japan SMB is the right first wedge.',
+    signals:{ framingLength:244, framingTimeSeconds:384, timeToAcceptanceSeconds:58, challengeCount:2 }, note:'', revisit:null, overridden:false },
+  { id:'s1c', week:1, date:'May 3',  cls:'Defer',    excerpt:'Generated GDPR data retention policy language from a short AI prompt.',
+    framing:'Write GDPR data retention policy for a SaaS product.',
+    ai:'We retain personal data for the duration of your subscription plus 90 days. Upon account termination, all personal data is deleted within 30 days of your written request...',
+    signals:{ framingLength:51, framingTimeSeconds:16, timeToAcceptanceSeconds:7, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s2a', week:2, date:'May 7',  cls:'Direct',   excerpt:'Worked through enterprise pricing model completely independently.',
+    framing:'Enterprise pricing anchors on seats, not usage. $200/seat/month, 10-seat minimum. Our competitor floor is $150 but we have the compliance story and the behavioral data angle. I worked through all the tradeoffs myself — value metric, packaging, floor price.',
+    ai:'', signals:{ framingLength:271, framingTimeSeconds:892, timeToAcceptanceSeconds:0, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s2b', week:2, date:'May 9',  cls:'Delegate', excerpt:'Explored product positioning vs. Linear and Notion with AI pressure-testing.',
+    framing:"We are the AI cognition layer. Figma owns design, Miro owns whiteboarding, Centaur owns cognitive measurement. I think this positioning holds. Help me find the holes — especially what Linear and Notion are doing in this space.",
+    ai:"The positioning is differentiated. Linear's expansion into product strategy is a threat vector. Notion AI is document-centric, not decision-centric. Your key moat is behavioral measurement — no competitor measures how you use AI, only that you use it.",
+    signals:{ framingLength:301, framingTimeSeconds:442, timeToAcceptanceSeconds:66, challengeCount:3 }, note:'', revisit:null, overridden:false },
+  { id:'s2c', week:2, date:'May 10', cls:'Defer',    excerpt:'Summarized board meeting notes from a one-line prompt.',
+    framing:'Summarize key decisions from board meeting.',
+    ai:'Three key decisions: (1) Extend runway to Q2 by reducing contractor spend by 40%, (2) Accelerate enterprise pilot with two anchor customers, (3) Defer international expansion to Q4.',
+    signals:{ framingLength:42, framingTimeSeconds:19, timeToAcceptanceSeconds:8, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s3a', week:3, date:'May 14', cls:'Delegate', excerpt:'Developed Series B announcement copy from my outline, AI drafted.',
+    framing:'Lead with the behavioral insight angle, not the funding number. Tone: measured, not triumphant. Key messages: we measure something nobody else measures, the problem is cognitive not productivity. I have the structure — need the draft.',
+    ai:'Draft: "Today, Centaur announces $12M Series B to build the first cognitive instrument for AI-native knowledge work. Unlike productivity tools that measure output, Centaur measures the quality of reasoning behind it."',
+    signals:{ framingLength:288, framingTimeSeconds:344, timeToAcceptanceSeconds:74, challengeCount:4 }, note:'', revisit:null, overridden:false },
+  { id:'s3b', week:3, date:'May 16', cls:'Defer',    excerpt:'Generated investor update email from a brief prompt, minimal editing.',
+    framing:'Write brief investor update: MRR $280K, churn 2.1%, pipeline $1.2M.',
+    ai:'Team — Quick May metrics update. MRR reached $280K (+8% MoM), churn held at 2.1% against a 2.5% target. Pipeline at $1.2M with three enterprise pilots in final stages.',
+    signals:{ framingLength:65, framingTimeSeconds:22, timeToAcceptanceSeconds:11, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s3c', week:3, date:'May 17', cls:'Defer',    excerpt:'Asked AI to draft Q3 hiring plan structure with minimal direction.',
+    framing:'Draft a Q3 hiring plan for a 12-person B2B SaaS startup.',
+    ai:'Q3 Hiring Plan: Engineering: 2 senior engineers (backend), 1 infrastructure. Design: 1 senior product designer. Sales: 2 AEs (enterprise focus). Total headcount addition: 6.',
+    signals:{ framingLength:52, framingTimeSeconds:20, timeToAcceptanceSeconds:9, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s4a', week:4, date:'May 21', cls:'Defer',    excerpt:'Generated Q3 OKRs from a short prompt with light editing.',
+    framing:'Write Q3 OKRs for a B2B SaaS company focused on retention.',
+    ai:'Objective 1: Reduce churn by building sticky workflows. KR1: Launch 3 new integrations. KR2: Increase DAU/MAU ratio to 0.42.',
+    signals:{ framingLength:55, framingTimeSeconds:21, timeToAcceptanceSeconds:10, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s4b', week:4, date:'May 22', cls:'Delegate', excerpt:'Reviewed technical architecture for session data model with AI.',
+    framing:'We use event sourcing with CQRS for session data. My concern is replay latency at scale — 10K sessions per user over 2 years. I think snapshot every 500 events but want to pressure-test that number.',
+    ai:'Snapshot at 500 is reasonable but consider adaptive snapshotting based on aggregate size rather than event count. At projected scale, time-based snapshots (weekly) may outperform count-based triggers.',
+    signals:{ framingLength:253, framingTimeSeconds:422, timeToAcceptanceSeconds:48, challengeCount:2 }, note:'', revisit:null, overridden:false },
+  { id:'s4c', week:4, date:'May 23', cls:'Defer',    excerpt:'Asked AI to write legal disclaimer copy for privacy policy.',
+    framing:'Write GDPR-compliant data retention language for SaaS privacy policy.',
+    ai:'We retain personal data for the duration of your subscription plus 90 days. Upon account termination, personal data is deleted within 30 days of written request.',
+    signals:{ framingLength:66, framingTimeSeconds:24, timeToAcceptanceSeconds:7, challengeCount:0 }, note:'', revisit:null, overridden:false },
+  { id:'s5a', week:5, date:'May 28', cls:'Delegate', excerpt:'Explored product roadmap restructure with AI as a sounding board.',
+    framing:"I think we keep the roadmap as-is pre-Series B. Changing it sends the wrong signal to investors — they want execution momentum. My instinct is to lock it and ship. Help me find the counter-argument.",
+    ai:'Restructuring pre-Series B carries real risk. Investors want execution momentum. However, if the current roadmap has material gaps revealed by recent customer discovery, silence is worse than transparency.',
+    signals:{ framingLength:227, framingTimeSeconds:252, timeToAcceptanceSeconds:38, challengeCount:2 }, note:'', revisit:null, overridden:false },
+  { id:'s5b', week:5, date:'May 29', cls:'Defer',    excerpt:'Generated hiring plan structure from a prompt with minimal editing.',
+    framing:'Draft Q3 hiring plan for 12-person startup.',
+    ai:'Engineering: 2 senior backend engineers. Design: 1 senior product designer. Sales: 1 enterprise AE. Operations: 1 ops manager. Total additions: 5.',
+    signals:{ framingLength:43, framingTimeSeconds:18, timeToAcceptanceSeconds:8, challengeCount:0 }, note:'', revisit:null, overridden:false },
+];
+
+/* ─────────────────────────────────────────────
+   STORAGE
+   ───────────────────────────────────────────── */
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
+
+/* ─────────────────────────────────────────────
+   CLASSIFICATION ENGINE
+   ───────────────────────────────────────────── */
+const STOP_WORDS = new Set([
+  'the','a','an','is','was','are','be','been','have','has','had','do','does','did',
+  'will','would','could','should','may','might','of','to','in','for','on','with',
+  'at','by','from','and','or','but','if','that','this','it','my','your','our',
+  'their','i','we','you','he','she','they','me','him','her','us','them',
+]);
+
+function wordDivergence(framing, aiOutput) {
+  if (!framing || !aiOutput || framing.length < 20 || aiOutput.length < 20) return 0.5;
+  const keywords = (str) =>
+    str.toLowerCase().split(/\W+/).filter(w => w.length > 3 && !STOP_WORDS.has(w));
+  const fw = keywords(framing);
+  const aw = keywords(aiOutput);
+  if (!fw.length || !aw.length) return 0.5;
+  const aiSet = new Set(aw);
+  const shared = fw.filter(w => aiSet.has(w)).length;
+  return 1 - shared / fw.length;
+}
+
+function classify(sig) {
+  const s1 = sig.framingLength >= 150 ? 3 : sig.framingLength >= 50 ? 2 : 1;
+  const s2 = sig.framingTimeSeconds >= 120 ? 3 : sig.framingTimeSeconds >= 30 ? 2 : 1;
+  const s3 = sig.timeToAcceptanceSeconds >= 90 ? 3 : sig.timeToAcceptanceSeconds >= 30 ? 2 : 1;
+  const div = wordDivergence(sig.framing, sig.aiOutput);
+  const s4 = div > 0.65 ? 3 : div > 0.35 ? 2 : 1;
+  const s5 = sig.challengeCount >= 2 ? 3 : sig.challengeCount >= 1 ? 2 : 1;
+  const total = s1 + s2 + s3 + s4 + s5;
+  return total >= 12 ? 'Direct' : total >= 8 ? 'Delegate' : 'Defer';
+}
+
+/* ─────────────────────────────────────────────
+   ANALYTICS — RATIO / DRIFT / TREND
+   ───────────────────────────────────────────── */
+function computeRatio(sessions, week) {
+  const ws = sessions.filter(s => s.week === week);
+  if (!ws.length) return null;
+  const t = ws.length;
+  return {
+    direct:   Math.round(ws.filter(s => s.cls === 'Direct').length   / t * 100),
+    delegate: Math.round(ws.filter(s => s.cls === 'Delegate').length / t * 100),
+    defer:    Math.round(ws.filter(s => s.cls === 'Defer').length    / t * 100),
+    total: t,
+  };
+}
+
+function computeDrift(sessions, week) {
+  if (week < 4) return null;
+  const base = sessions.filter(s => s.week <= 2);
+  if (!base.length) return null;
+  const baseRate = base.filter(s => s.cls === 'Defer').length / base.length * 100;
+  const cur = computeRatio(sessions, week);
+  if (!cur) return null;
+  const diff = cur.defer - baseRate;
+  return {
+    direction: diff > 5 ? 'rising' : diff < -5 ? 'falling' : 'stable',
+    pts: Math.round(Math.abs(diff)),
+    baseRate: Math.round(baseRate),
+  };
+}
+
+function computeTrend(sessions, week) {
+  const out = [];
+  for (let w = Math.max(1, week - 3); w <= week; w++) {
+    const r = computeRatio(sessions, w);
+    out.push({ week: w, direct: r?.direct || 0, delegate: r?.delegate || 0, defer: r?.defer || 0 });
+  }
+  return out;
+}
+
+/* ─────────────────────────────────────────────
+   EXPORT / IMPORT
+   ───────────────────────────────────────────── */
+function exportData(sessions, user) {
+  const blob = new Blob(
+    [JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), user, sessions }, null, 2)],
+    { type: 'application/json' }
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `centaur-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file, cb) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.sessions) cb(data);
+    } catch {
+      alert('Invalid export file.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ─────────────────────────────────────────────
+   SHARED STYLE TOKENS
+   ───────────────────────────────────────────── */
+const T = {
+  eyebrow: { fontSize: 9, fontWeight: 500, letterSpacing: '0.24em', textTransform: 'uppercase', color: 'var(--t3)' },
+  label:   { fontSize: 10, color: 'var(--t2)', letterSpacing: '0.03em' },
+  mono:    { fontFamily: 'monospace', fontSize: 11, color: 'var(--t3)' },
+};
+
+/* ─────────────────────────────────────────────
+   CLASSIFICATION LABEL
+   ───────────────────────────────────────────── */
+function ClsLabel({ cls, size = 'sm' }) {
+  const sz = { sm: 13, md: 24, lg: 56, xl: 112 }[size] || 13;
+  if (cls === 'Direct') return (
+    <span style={{ fontFamily: 'var(--ui)', fontSize: sz, fontWeight: 600, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--direct)', lineHeight: 1 }}>
+      DIRECT
+    </span>
+  );
+  if (cls === 'Delegate') return (
+    <span style={{ fontFamily: 'var(--dp)', fontSize: sz, color: 'var(--delegate)', lineHeight: 1 }}>
+      Delegate
+    </span>
+  );
+  return (
+    <span style={{ fontFamily: 'var(--dp)', fontSize: sz, fontStyle: 'italic', color: 'var(--defer)', lineHeight: 1 }}>
+      Defer.
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SPARKLINE
+   ───────────────────────────────────────────── */
+function Sparkline({ data, color, w = 80, h = 28 }) {
+  if (!data || data.length < 2) return null;
+  const min = Math.min(...data) - 2;
+  const max = Math.max(...data) + 2;
+  const rng = max - min || 1;
+  const n = data.length;
+  const pts = data
+    .map((v, i) => `${4 + (i / (n - 1)) * (w - 8)},${h - 4 - ((v - min) / rng) * (h - 8)}`)
+    .join(' ');
+  const [cx, cy] = pts.split(' ').pop().split(',');
+  return (
+    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} fill="none">
+      <polyline points={pts} stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={cx} cy={cy} r="2" fill={color} />
+    </svg>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   AI OUTPUT EDITOR  (contenteditable + challenge gesture)
+   ───────────────────────────────────────────── */
+function AIOutputEditor({ onChange, onChallenge, challengeCount }) {
+  const ref = useRef(null);
+  const [challengeBtn, setChallengeBtn] = useState(null);
+
+  const checkSelection = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.toString().trim() || !ref.current?.contains(sel.anchorNode)) {
+      setChallengeBtn(null);
+      return;
+    }
+    const rect = sel.getRangeAt(0).getBoundingClientRect();
+    setChallengeBtn({ top: rect.top - 40, left: rect.left + rect.width / 2 });
+  }, []);
+
+  const doChallenge = useCallback(() => {
+    const sel = window.getSelection();
+    if (!sel || sel.isCollapsed) return;
+    try {
+      const range = sel.getRangeAt(0);
+      if (!ref.current?.contains(range.commonAncestorContainer)) return;
+      const frag = range.extractContents();
+      const mark = document.createElement('mark');
+      mark.appendChild(frag);
+      range.insertNode(mark);
+      sel.removeAllRanges();
+      onChallenge();
+    } catch {
+      sel.removeAllRanges();
+      onChallenge();
+    }
+    setChallengeBtn(null);
+  }, [onChallenge]);
+
+  return (
+    <>
+      <div
+        ref={ref}
+        contentEditable
+        suppressContentEditableWarning
+        data-ph="Paste the AI's response here. Select any text you'd push back on to log a challenge."
+        onMouseUp={checkSelection}
+        onKeyUp={checkSelection}
+        onInput={e => onChange(e.currentTarget.textContent)}
+        onPaste={e => {
+          e.preventDefault();
+          const text = e.clipboardData.getData('text/plain');
+          const sel = window.getSelection();
+          if (sel.rangeCount) {
+            sel.deleteFromDocument();
+            const node = document.createTextNode(text);
+            sel.getRangeAt(0).insertNode(node);
+            sel.collapse(node, node.length);
+          }
+          onChange(ref.current.textContent);
+        }}
+        style={{
+          minHeight: 180,
+          background: 'var(--surface)',
+          border: '1px solid var(--borderhi)',
+          borderRadius: 'var(--r)',
+          padding: '16px 18px',
+          color: 'var(--t1)',
+          fontSize: 14,
+          lineHeight: 1.72,
+          fontWeight: 300,
+          outline: 'none',
+          cursor: 'text',
+          fontFamily: 'var(--ui)',
+          whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+        }}
+      />
+      {challengeCount > 0 && (
+        <div style={{ marginTop: 6, fontSize: 11, color: 'var(--accent)' }}>
+          {challengeCount} challenge{challengeCount !== 1 ? 's' : ''} marked
+        </div>
+      )}
+      {challengeBtn && (
+        <button
+          onMouseDown={e => { e.preventDefault(); doChallenge(); }}
+          style={{
+            position: 'fixed',
+            top: challengeBtn.top,
+            left: challengeBtn.left,
+            transform: 'translateX(-50%)',
+            background: 'var(--accent)',
+            color: '#0c0f14',
+            border: 'none',
+            borderRadius: 'var(--r)',
+            padding: '5px 12px',
+            fontSize: 11,
+            fontWeight: 600,
+            fontFamily: 'var(--ui)',
+            letterSpacing: '0.06em',
+            cursor: 'pointer',
+            zIndex: 9999,
+            whiteSpace: 'nowrap',
+          }}
+        >
+          ⚑ Challenge
+        </button>
+      )}
+    </>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   ONBOARDING
+   ───────────────────────────────────────────── */
+function Onboarding({ onComplete }) {
+  const [step, setStep] = useState(0);
+  const [role, setRole] = useState('');
+  const ROLES = ['PM', 'Investor', 'Analyst', 'Strategist', 'Other'];
+
+  const centered = {
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    justifyContent: 'center', minHeight: '100vh', padding: 48, textAlign: 'center',
+  };
+
+  if (step === 0) return (
+    <div style={centered}>
+      <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: '0.28em', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: 24 }}>
+        Cognitive instrument
+      </div>
+      <div style={{ fontFamily: 'var(--dp)', fontSize: 64, lineHeight: 1, letterSpacing: '-0.02em', color: 'var(--t1)', marginBottom: 8 }}>
+        Centaur
+      </div>
+      <div style={{ fontFamily: 'var(--dp)', fontSize: 24, color: 'var(--t2)', fontStyle: 'italic', marginBottom: 40 }}>
+        An instrument for judgment.
+      </div>
+      <p style={{ fontSize: 15, lineHeight: 1.82, color: 'var(--t2)', fontWeight: 300, maxWidth: 460, marginBottom: 48 }}>
+        Centaur logs every AI session you complete and classifies it as Direct, Delegate, or Defer — based on your actual behavior, not self-report. After four weeks, your pattern tells you something true about how you think.
+      </p>
+      <button
+        onClick={() => setStep(1)}
+        style={{ fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500, color: 'var(--bg)', background: 'var(--t1)', border: 'none', borderRadius: 'var(--r)', padding: '13px 28px', cursor: 'pointer', letterSpacing: '0.04em' }}
+      >
+        Begin →
+      </button>
+      <div style={{ marginTop: 48, fontSize: 11, color: 'var(--t3)' }}>
+        All data stays on your device. Nothing is sent anywhere.
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={centered}>
+      <div style={{ ...T.eyebrow, marginBottom: 24 }}>Tell us about your work</div>
+      <h2 style={{ fontFamily: 'var(--dp)', fontSize: 36, color: 'var(--t1)', marginBottom: 40, lineHeight: 1.1 }}>
+        What kind of work do you<br />use AI for most?
+      </h2>
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center', marginBottom: 48 }}>
+        {ROLES.map(r => (
+          <button
+            key={r}
+            onClick={() => setRole(r)}
+            style={{
+              fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500,
+              color: role === r ? 'var(--bg)' : 'var(--t2)',
+              background: role === r ? 'var(--t1)' : 'var(--surface)',
+              border: `1px solid ${role === r ? 'var(--t1)' : 'var(--border)'}`,
+              borderRadius: 'var(--r)', padding: '12px 24px', cursor: 'pointer',
+              letterSpacing: '0.04em', transition: 'all 0.14s',
+            }}
+          >
+            {r}
+          </button>
+        ))}
+      </div>
+      <button
+        onClick={() => role && onComplete(role)}
+        disabled={!role}
+        style={{
+          fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500,
+          color: role ? 'var(--bg)' : 'var(--t3)',
+          background: role ? 'var(--t1)' : 'var(--surface3)',
+          border: 'none', borderRadius: 'var(--r)', padding: '13px 28px',
+          cursor: role ? 'pointer' : 'not-allowed', letterSpacing: '0.04em', transition: 'all 0.14s',
+        }}
+      >
+        Start your first session →
+      </button>
+      <div style={{ marginTop: 24, fontSize: 11, color: 'var(--t3)' }}>
+        Used only for context — not for classification
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   WALKTHROUGH PANEL
+   ───────────────────────────────────────────── */
+function Walkthrough({ stage, onDismiss }) {
+  const tips = {
+    1: {
+      title: 'Your reasoning first',
+      body: "This is the forced reasoning gate — you must write your thinking before seeing what AI produced. There's no minimum length. A fragment counts. What matters is that you articulate something before AI does.",
+      signals: 'Logging: character count, time spent here.',
+    },
+    2: {
+      title: 'Compare the output',
+      body: "Paste the AI's response. Your framing stays visible above so you can see the gap. To log a challenge, select any text in the AI output — a button will appear.",
+      signals: 'Logging: AI output length, time to acceptance, challenge count.',
+    },
+    3: {
+      title: 'The verdict',
+      body: "Classification is computed from your behavioral signals — not from reading your content. The algorithm is transparent in session detail. You can override if it feels wrong — that override is itself a data point.",
+      signals: 'Override is logged as a behavioral signal.',
+    },
+  };
+  const t = tips[stage];
+  return (
+    <div style={{
+      width: 260, flexShrink: 0, background: 'var(--surface)', border: '1px solid var(--border)',
+      borderRadius: 4, padding: '20px 18px', display: 'flex', flexDirection: 'column',
+      gap: 12, alignSelf: 'flex-start', position: 'sticky', top: 24,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={T.eyebrow}>Stage {stage} of 3</div>
+        <button onClick={onDismiss} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--t3)', fontSize: 14, padding: 0, lineHeight: 1 }}>✕</button>
+      </div>
+      <div style={{ fontFamily: 'var(--dp)', fontSize: 18, color: 'var(--t1)', lineHeight: 1.2 }}>{t.title}</div>
+      <p style={{ fontSize: 12, lineHeight: 1.70, color: 'var(--t2)', fontWeight: 300 }}>{t.body}</p>
+      <div style={{ borderTop: '1px solid var(--border)', paddingTop: 10 }}>
+        <div style={{ fontSize: 10, color: 'var(--t3)', lineHeight: 1.6 }}>{t.signals}</div>
+      </div>
+      <a href="User Guide.html" target="_blank" style={{ fontSize: 11, color: 'var(--t2)', textDecoration: 'none', marginTop: 4 }}>
+        Full guide →
+      </a>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   TOP NAV
+   ───────────────────────────────────────────── */
+function TopNav({ view, setView, onSimOpen, onGuide }) {
+  const navBtn = (v, label) => (
+    <button
+      key={v}
+      onClick={() => setView(v)}
+      style={{
+        height: 56, padding: '0 18px', display: 'flex', alignItems: 'center',
+        fontSize: 12, letterSpacing: '0.04em', cursor: 'pointer',
+        color: view === v ? 'var(--t1)' : 'var(--t2)',
+        background: 'none', border: 'none',
+        borderBottom: view === v ? '1px solid var(--t1)' : '1px solid transparent',
+        marginBottom: -1, fontFamily: 'var(--ui)', transition: 'color 0.14s',
+      }}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <nav style={{
+      height: 56, minHeight: 56, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', padding: '0 36px',
+      borderBottom: '1px solid var(--border)', background: 'var(--bg)', flexShrink: 0,
+    }}>
+      <a href="Landing Page.html" style={{ fontSize: 12, fontWeight: 500, letterSpacing: '0.26em', textTransform: 'uppercase', color: 'var(--t1)', textDecoration: 'none' }}>
+        Centaur
+      </a>
+      <div style={{ display: 'flex' }}>
+        {navBtn('dashboard', 'Dashboard')}
+        {navBtn('session',   'New session')}
+        {navBtn('history',   'History')}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <button onClick={onGuide} style={{ fontSize: 11, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em', fontFamily: 'var(--ui)' }}>
+          Guide
+        </button>
+        <button onClick={onSimOpen} title="Week simulator" style={{ fontSize: 13, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontFamily: 'var(--ui)' }}>
+          ⚙
+        </button>
+      </div>
+    </nav>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   WEEK SIMULATOR  (dev tool)
+   ───────────────────────────────────────────── */
+function WeekSimPanel({ simWeek, setSimWeek, onClose }) {
+  return (
+    <div style={{
+      position: 'fixed', top: 64, right: 16, background: 'var(--surface)',
+      border: '1px solid var(--borderhi)', borderRadius: 4, padding: '16px 18px',
+      zIndex: 200, minWidth: 200,
+    }}>
+      <div style={{ ...T.eyebrow, marginBottom: 12 }}>Week simulator</div>
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        {[1, 2, 3, 4, 5, 6].map(w => (
+          <button
+            key={w}
+            onClick={() => { setSimWeek(w); onClose(); }}
+            style={{
+              fontFamily: 'var(--ui)', fontSize: 12, fontWeight: 500,
+              color: simWeek === w ? 'var(--bg)' : 'var(--t2)',
+              background: simWeek === w ? 'var(--t1)' : 'var(--surface3)',
+              border: `1px solid ${simWeek === w ? 'var(--t1)' : 'var(--border)'}`,
+              borderRadius: 'var(--r)', padding: '6px 12px', cursor: 'pointer',
+            }}
+          >
+            Wk {w}
+          </button>
+        ))}
+      </div>
+      <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 12, lineHeight: 1.6 }}>
+        Changes what the dashboard shows.<br />New sessions are tagged to this week.
+      </div>
+      <button onClick={onClose} style={{ marginTop: 10, fontSize: 11, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--ui)', padding: 0 }}>
+        Close
+      </button>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SESSION ROW
+   ───────────────────────────────────────────── */
+function SessRow({ s, last, onClick }) {
+  const [hov, setHov] = useState(false);
+  const timeLabel = s.signals.framingTimeSeconds < 60
+    ? `${s.signals.framingTimeSeconds}s`
+    : `${Math.floor(s.signals.framingTimeSeconds / 60)}m ${s.signals.framingTimeSeconds % 60}s`;
+
+  return (
+    <div
+      onClick={onClick}
+      onMouseOver={() => setHov(true)}
+      onMouseOut={() => setHov(false)}
+      style={{
+        display: 'grid', gridTemplateColumns: '72px 110px 1fr 56px',
+        alignItems: 'center', gap: 16, padding: '12px 24px',
+        borderBottom: last ? 'none' : '1px solid var(--border)',
+        background: hov && onClick ? 'var(--surface2)' : 'var(--surface)',
+        cursor: onClick ? 'pointer' : 'default', transition: 'background 0.12s',
+      }}
+    >
+      <div style={{ fontSize: 11, color: 'var(--t3)' }}>{s.date}</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+        <ClsLabel cls={s.cls} />
+        {s.overridden && <span title="Classification overridden" style={{ fontSize: 9, color: 'var(--t3)' }}>*</span>}
+      </div>
+      <div style={{ fontSize: 12, color: 'var(--t2)', fontWeight: 300, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        {s.excerpt}
+      </div>
+      <div style={{ fontSize: 11, color: 'var(--t3)', textAlign: 'right' }}>{timeLabel}</div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   DASHBOARD
+   ───────────────────────────────────────────── */
+function Dashboard({ sessions, simWeek, setView }) {
+  const ratio = computeRatio(sessions, simWeek);
+  const drift = computeDrift(sessions, simWeek);
+  const trend = computeTrend(sessions, simWeek);
+  const isBaseline = simWeek <= 2;
+  const weekSessions = sessions.filter(s => s.week === simWeek).length;
+
+  const driftArrow = drift
+    ? drift.direction === 'rising' ? '↑' : drift.direction === 'falling' ? '↓' : '→'
+    : null;
+  const driftColor = drift?.direction === 'rising'
+    ? 'var(--accent)'
+    : drift?.direction === 'falling' ? 'var(--delegate)' : 'var(--t2)';
+
+  return (
+    <div style={{ maxWidth: 960, margin: '0 auto' }}>
+      {/* Status bar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
+        {isBaseline ? (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '10px 18px', fontSize: 12, color: 'var(--t2)', fontWeight: 300 }}>
+            <span style={{ color: 'var(--t1)', fontWeight: 500 }}>Baseline mode</span>
+            {' — your pattern will be visible after week 2. '}
+            {weekSessions} session{weekSessions !== 1 ? 's' : ''} logged.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={T.eyebrow}>Week {simWeek}</div>
+            <div style={{ fontSize: 11, color: 'var(--t3)' }}>· {weekSessions} sessions this week · {sessions.length} all time</div>
+          </div>
+        )}
+        <button
+          onClick={() => setView('session')}
+          style={{ fontFamily: 'var(--ui)', fontSize: 12, fontWeight: 500, color: 'var(--bg)', background: 'var(--t1)', border: 'none', borderRadius: 'var(--r)', padding: '9px 18px', cursor: 'pointer', letterSpacing: '0.04em' }}
+        >
+          New session
+        </button>
+      </div>
+
+      {/* Metrics row */}
+      <div style={{ display: 'grid', gridTemplateColumns: drift ? '1fr 1fr' : '1fr', gap: 1, marginBottom: 1 }}>
+        {/* Drift indicator — week 4+ only */}
+        {drift && (
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '4px 0 0 0', padding: '24px 28px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ ...T.eyebrow, marginBottom: 12 }}>Defer drift</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <span style={{ fontSize: 36, color: driftColor, lineHeight: 1 }}>{driftArrow}</span>
+                <div>
+                  <div style={{ fontFamily: 'var(--dp)', fontSize: 30, color: 'var(--t1)', lineHeight: 1, textTransform: 'capitalize' }}>
+                    {drift.direction}
+                  </div>
+                  <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 3 }}>
+                    {drift.direction === 'stable'
+                      ? `±${drift.pts} pts vs baseline`
+                      : `${drift.direction === 'rising' ? '+' : '-'}${drift.pts} pts vs baseline (${drift.baseRate}%)`}
+                  </div>
+                </div>
+              </div>
+            </div>
+            <Sparkline data={trend.map(t => t.defer)} color="var(--defer)" w={120} h={44} />
+          </div>
+        )}
+
+        {/* Ratio */}
+        <div style={{
+          background: 'var(--surface)', border: '1px solid var(--border)',
+          borderLeft: drift ? 'none' : '',
+          borderRadius: drift ? '0 4px 0 0' : '4px 4px 0 0',
+          padding: '24px 28px 20px',
+        }}>
+          <div style={{ ...T.eyebrow, marginBottom: 16 }}>Current week ratio</div>
+          {isBaseline ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+              {['Direct', 'Delegate', 'Defer'].map((lbl, i) => (
+                <div key={lbl} style={{ paddingRight: i < 2 ? 20 : 0, paddingLeft: i > 0 ? 20 : 0, borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ fontFamily: 'var(--dp)', fontSize: 36, color: 'var(--t3)', lineHeight: 1, marginBottom: 4 }}>—</div>
+                  <div style={{ ...T.eyebrow, color: 'var(--t3)' }}>{lbl}</div>
+                  <div style={{ fontSize: 10, color: 'var(--t3)', marginTop: 4 }}>reveals week 3</div>
+                </div>
+              ))}
+            </div>
+          ) : ratio ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr' }}>
+              {[
+                { lbl: 'Direct',   val: ratio.direct,   c: 'var(--direct)',   key: 'direct' },
+                { lbl: 'Delegate', val: ratio.delegate, c: 'var(--delegate)', key: 'delegate' },
+                { lbl: 'Defer',    val: ratio.defer,    c: 'var(--defer)',    key: 'defer' },
+              ].map(({ lbl, val, c, key }, i) => (
+                <div key={lbl} style={{ paddingRight: i < 2 ? 20 : 0, paddingLeft: i > 0 ? 20 : 0, borderRight: i < 2 ? '1px solid var(--border)' : 'none' }}>
+                  <div style={{ fontFamily: 'var(--dp)', fontSize: 36, color: c, lineHeight: 1, marginBottom: 4 }}>{val}%</div>
+                  <div style={T.eyebrow}>{lbl}</div>
+                  <Sparkline data={trend.map(t => t[key])} color={c} w={80} h={24} />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ fontSize: 13, color: 'var(--t3)', fontWeight: 300 }}>
+              No sessions this week yet. Log your first to start the pattern.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Recent sessions */}
+      <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: 'none', borderRadius: '0 0 4px 4px', marginBottom: 24 }}>
+        <div style={{ padding: '12px 24px 10px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={T.eyebrow}>Recent sessions</div>
+          <button onClick={() => setView('history')} style={{ fontSize: 11, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--ui)' }}>
+            View all →
+          </button>
+        </div>
+        {sessions.length === 0 ? (
+          <div style={{ padding: 24, fontSize: 13, color: 'var(--t3)', fontWeight: 300 }}>
+            No sessions yet. Start your first to establish your baseline.
+          </div>
+        ) : (
+          sessions.slice().reverse().slice(0, 5).map((s, i, arr) => (
+            <SessRow key={s.id} s={s} last={i === arr.length - 1} />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   NEW SESSION  (core loop — 3 stages)
+   ───────────────────────────────────────────── */
+function NewSession({ sessions, setSessions, simWeek, setView, showWalkthrough }) {
+  const [stage, setStage] = useState(1);
+  const [framing, setFraming] = useState('');
+  const [aiOutput, setAiOutput] = useState('');
+  const [challengeCount, setChallengeCount] = useState(0);
+  const [note, setNote] = useState('');
+  const [verdict, setVerdict] = useState(null);
+  const [override, setOverride] = useState(null);
+  const [analyzing, setAnalyzing] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [showWT, setShowWT] = useState(showWalkthrough);
+  const t1 = useRef(Date.now());
+  const t2 = useRef(null);
+
+  const framingWords = framing.trim().split(/\s+/).filter(Boolean).length;
+  const canProceed = framing.trim().length >= 10;
+  const STAGES = ['Framing', 'AI output', 'Verdict'];
+
+  function goStage2() {
+    if (!canProceed) return;
+    t2.current = Date.now();
+    setStage(2);
+  }
+
+  function goStage3() {
+    if (!aiOutput.trim()) return;
+    const framingTimeSec = Math.round((t2.current - t1.current) / 1000);
+    const acceptTimeSec  = Math.round((Date.now() - t2.current) / 1000);
+    const sig = { framing, aiOutput, framingLength: framing.length, framingTimeSeconds: framingTimeSec, timeToAcceptanceSeconds: acceptTimeSec, challengeCount };
+    setStage(3);
+    setAnalyzing(true);
+    setTimeout(() => { setVerdict(classify(sig)); setAnalyzing(false); }, 2400);
+  }
+
+  function handleSave() {
+    if (saved) return;
+    const framingTimeSec = Math.round((t2.current - t1.current) / 1000);
+    const acceptTimeSec  = Math.round((Date.now() - (t2.current || Date.now())) / 1000);
+    const sig = { framingLength: framing.length, framingTimeSeconds: framingTimeSec, timeToAcceptanceSeconds: acceptTimeSec, challengeCount };
+    const cls = override || verdict;
+    const rec = {
+      id: `u${Date.now()}`,
+      week: simWeek,
+      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      cls,
+      excerpt: framing.slice(0, 90) + (framing.length > 90 ? '…' : ''),
+      framing,
+      ai: aiOutput,
+      signals: sig,
+      note,
+      revisit: null,
+      overridden: !!override,
+      originalCls: override ? verdict : null,
+    };
+    const next = [...sessions, rec];
+    setSessions(next);
+    save('centaur_sessions', next);
+    setSaved(true);
+    setTimeout(() => setView('dashboard'), 700);
+  }
+
+  const btnBase = {
+    fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500,
+    border: 'none', borderRadius: 'var(--r)', padding: '10px 22px',
+    letterSpacing: '0.04em', transition: 'all 0.14s',
+  };
+
+  return (
+    <div style={{ maxWidth: showWT ? '100%' : 720, margin: '0 auto', display: 'flex', gap: 32, alignItems: 'flex-start' }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {/* Stage indicators */}
+        <div style={{ display: 'flex', gap: 0, marginBottom: 36, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+          {STAGES.map((s, i) => (
+            <div key={s} style={{ display: 'flex', alignItems: 'center', gap: 6, paddingRight: 22, paddingBottom: 14, borderBottom: stage === i + 1 ? '1px solid var(--t1)' : '1px solid transparent', marginBottom: -1 }}>
+              <div style={{ width: 6, height: 6, borderRadius: '50%', background: stage > i + 1 ? 'var(--accent)' : stage === i + 1 ? 'var(--t1)' : 'var(--border)', transition: 'background 0.2s' }} />
+              <span style={{ fontSize: 11, color: stage === i + 1 ? 'var(--t1)' : stage > i + 1 ? 'var(--t2)' : 'var(--t3)', letterSpacing: '0.06em', transition: 'color 0.2s' }}>
+                {s}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Stage 1 — Forced Reasoning Gate */}
+        {stage === 1 && (
+          <div className="fade-in">
+            <div style={{ ...T.eyebrow, marginBottom: 18 }}>What's your take before you look at the AI's answer?</div>
+            <textarea
+              value={framing}
+              onChange={e => setFraming(e.target.value)}
+              autoFocus
+              rows={10}
+              placeholder="Write your reasoning here. There is no right length — think out loud."
+              style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--borderhi)', borderRadius: 'var(--r)', padding: '16px 18px', color: 'var(--t1)', fontFamily: 'var(--ui)', fontSize: 15, lineHeight: 1.72, fontWeight: 300, resize: 'none', display: 'block', transition: 'border-color 0.14s' }}
+              onFocus={e => e.target.style.borderColor = 'var(--t2)'}
+              onBlur={e => e.target.style.borderColor = 'var(--borderhi)'}
+            />
+            <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ fontSize: 11, color: 'var(--t3)' }}>
+                {framingWords} word{framingWords !== 1 ? 's' : ''}
+                {framing.length > 0 && framing.length < 10 && (
+                  <span style={{ color: 'var(--t2)', marginLeft: 8 }}>10 characters minimum</span>
+                )}
+              </div>
+              <button
+                onClick={goStage2}
+                disabled={!canProceed}
+                style={{ ...btnBase, color: canProceed ? 'var(--bg)' : 'var(--t3)', background: canProceed ? 'var(--t1)' : 'var(--surface3)', cursor: canProceed ? 'pointer' : 'not-allowed' }}
+              >
+                Continue →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 2 — AI Output */}
+        {stage === 2 && (
+          <div className="fade-in">
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ ...T.eyebrow, marginBottom: 8 }}>Your framing</div>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '13px 16px', fontSize: 13, lineHeight: 1.72, color: 'var(--t2)', fontWeight: 300, maxHeight: 120, overflowY: 'auto', whiteSpace: 'pre-wrap' }}>
+                {framing}
+              </div>
+            </div>
+            <div style={{ ...T.eyebrow, marginBottom: 8 }}>AI output</div>
+            <AIOutputEditor
+              onChange={setAiOutput}
+              onChallenge={() => setChallengeCount(c => c + 1)}
+              challengeCount={challengeCount}
+            />
+            <div style={{ marginTop: 20, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <button onClick={() => setStage(1)} style={{ fontFamily: 'var(--ui)', fontSize: 12, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>← Back</button>
+              <button
+                onClick={goStage3}
+                disabled={!aiOutput.trim()}
+                style={{ ...btnBase, color: aiOutput.trim() ? 'var(--bg)' : 'var(--t3)', background: aiOutput.trim() ? 'var(--t1)' : 'var(--surface3)', cursor: aiOutput.trim() ? 'pointer' : 'not-allowed' }}
+              >
+                Classify →
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 3 — Verdict */}
+        {stage === 3 && (
+          <div className="fade-in" style={{ textAlign: 'center' }}>
+            {analyzing ? (
+              <div style={{ padding: '48px 0' }}>
+                <div style={{ fontSize: 11, color: 'var(--t3)', letterSpacing: '0.14em', marginBottom: 20 }}>Analyzing your session</div>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 6 }}>
+                  {[0, 1, 2].map(i => (
+                    <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--t3)', animation: `pulse 1.2s ease ${i * 0.2}s infinite` }} />
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <>
+                <div style={{ ...T.eyebrow, marginBottom: 28 }}>Session classified</div>
+                <div style={{ marginBottom: 28 }}>
+                  <ClsLabel cls={override || verdict} size="lg" />
+                </div>
+
+                {/* Behavioral signals summary */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 40, padding: '20px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', marginBottom: 28 }}>
+                  {[
+                    ['Framing time', t2.current ? `${Math.floor(Math.round((t2.current - t1.current) / 1000) / 60)}m ${Math.round((t2.current - t1.current) / 1000) % 60}s` : '—'],
+                    ['AI review time', `${Math.round((Date.now() - t2.current) / 1000)}s`],
+                    ['Framing length', `${framing.length} chars`],
+                    ['Challenges', challengeCount],
+                  ].map(([lbl, val]) => (
+                    <div key={lbl} style={{ textAlign: 'left' }}>
+                      <div style={{ fontFamily: 'var(--dp)', fontSize: 20, color: 'var(--t2)', lineHeight: 1, marginBottom: 4 }}>{val}</div>
+                      <div style={T.eyebrow}>{lbl}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Override */}
+                {!override ? (
+                  <div style={{ marginBottom: 20, textAlign: 'left' }}>
+                    <div style={{ ...T.eyebrow, marginBottom: 10 }}>
+                      Override classification <span style={{ opacity: 0.5 }}>(optional — logged as a signal)</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {['Direct', 'Delegate', 'Defer'].filter(c => c !== verdict).map(c => (
+                        <button
+                          key={c}
+                          onClick={() => setOverride(c)}
+                          style={{ fontFamily: 'var(--ui)', fontSize: 12, fontWeight: 500, color: 'var(--t2)', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '8px 16px', cursor: 'pointer', letterSpacing: '0.04em' }}
+                        >
+                          {c}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ marginBottom: 20, textAlign: 'left', display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 12, color: 'var(--t2)', fontWeight: 300 }}>
+                      Overridden from <span style={{ color: 'var(--t1)' }}>{verdict}</span> to <span style={{ color: 'var(--t1)' }}>{override}</span>
+                    </div>
+                    <button onClick={() => setOverride(null)} style={{ fontSize: 11, color: 'var(--t3)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--ui)' }}>Undo</button>
+                  </div>
+                )}
+
+                {/* Optional note */}
+                <div style={{ textAlign: 'left', marginBottom: 24 }}>
+                  <div style={{ ...T.eyebrow, marginBottom: 8 }}>
+                    Note <span style={{ opacity: 0.5 }}>(optional)</span>
+                  </div>
+                  <textarea
+                    value={note}
+                    onChange={e => setNote(e.target.value)}
+                    rows={3}
+                    placeholder="What do you want to remember about this session?"
+                    style={{ width: '100%', background: 'var(--surface)', border: '1px solid var(--borderhi)', borderRadius: 'var(--r)', padding: '12px 14px', color: 'var(--t1)', fontFamily: 'var(--ui)', fontSize: 13, lineHeight: 1.65, fontWeight: 300, resize: 'none', display: 'block' }}
+                    onFocus={e => e.target.style.borderColor = 'var(--t2)'}
+                    onBlur={e => e.target.style.borderColor = 'var(--borderhi)'}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <button onClick={() => setStage(2)} style={{ fontFamily: 'var(--ui)', fontSize: 12, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>← Back</button>
+                  <button
+                    onClick={handleSave}
+                    style={{ fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500, color: 'var(--bg)', background: saved ? 'var(--accent)' : 'var(--t1)', border: 'none', borderRadius: 'var(--r)', padding: '10px 24px', cursor: 'pointer', letterSpacing: '0.04em', transition: 'all 0.2s' }}
+                  >
+                    {saved ? 'Saved ✓' : 'Save session'}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Walkthrough panel */}
+      {showWT && (
+        <Walkthrough stage={stage} onDismiss={() => { setShowWT(false); save('centaur_walkthrough_seen', true); }} />
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   HISTORY
+   ───────────────────────────────────────────── */
+function History({ sessions, setSessions }) {
+  const [filter, setFilter] = useState('All');
+  const [selected, setSelected] = useState(null);
+  const fileRef = useRef();
+  const user = load('centaur_user', null);
+
+  if (selected) {
+    const s = sessions.find(x => x.id === selected);
+    if (s) return (
+      <SessionDetail
+        s={s}
+        onBack={() => setSelected(null)}
+        onRevisit={action => {
+          const next = sessions.map(x => x.id === s.id
+            ? { ...x, revisit: { action, timestamp: new Date().toISOString() } }
+            : x
+          );
+          setSessions(next);
+          save('centaur_sessions', next);
+        }}
+      />
+    );
+  }
+
+  const filtered = (filter === 'All' ? sessions : sessions.filter(s => s.cls === filter)).slice().reverse();
+
+  return (
+    <div style={{ maxWidth: 860, margin: '0 auto' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, borderBottom: '1px solid var(--border)', paddingBottom: 0 }}>
+        {/* Filter tabs */}
+        <div style={{ display: 'flex' }}>
+          {['All', 'Direct', 'Delegate', 'Defer'].map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                fontFamily: 'var(--ui)', fontSize: 12,
+                color: filter === f ? 'var(--t1)' : 'var(--t2)',
+                background: 'none', border: 'none',
+                borderBottom: filter === f ? '1px solid var(--t1)' : '1px solid transparent',
+                marginBottom: -1, padding: '0 14px 14px', cursor: 'pointer',
+                letterSpacing: '0.04em', transition: 'color 0.14s',
+              }}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+        {/* Actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 14 }}>
+          <div style={{ fontSize: 11, color: 'var(--t3)' }}>{filtered.length} session{filtered.length !== 1 ? 's' : ''}</div>
+          <button onClick={() => exportData(sessions, user)} style={{ fontFamily: 'var(--ui)', fontSize: 11, color: 'var(--t2)', background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '4px 10px', cursor: 'pointer' }}>↓ Export</button>
+          <button onClick={() => fileRef.current.click()} style={{ fontFamily: 'var(--ui)', fontSize: 11, color: 'var(--t2)', background: 'none', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '4px 10px', cursor: 'pointer' }}>↑ Import</button>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".json"
+            style={{ display: 'none' }}
+            onChange={e => e.target.files[0] && importData(e.target.files[0], d => {
+              setSessions(d.sessions);
+              save('centaur_sessions', d.sessions);
+            })}
+          />
+        </div>
+      </div>
+
+      {filtered.length === 0 ? (
+        <div style={{ padding: '40px 0', fontSize: 13, color: 'var(--t3)', fontWeight: 300 }}>
+          No sessions{filter !== 'All' ? ` classified as ${filter}` : ' yet'}.
+        </div>
+      ) : (
+        <div style={{ border: '1px solid var(--border)', borderRadius: 4, overflow: 'hidden' }}>
+          {filtered.map((s, i) => (
+            <SessRow key={s.id} s={s} last={i === filtered.length - 1} onClick={() => setSelected(s.id)} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   SESSION DETAIL + REVISIT
+   ───────────────────────────────────────────── */
+function SessionDetail({ s, onBack, onRevisit }) {
+  const [rv, setRv] = useState(s.revisit?.action || null);
+  const fmtTime = sec => sec === 0 ? '—' : sec < 60 ? `${sec}s` : `${Math.floor(sec / 60)}m ${sec % 60}s`;
+
+  return (
+    <div style={{ maxWidth: 720, margin: '0 auto' }} className="fade-in">
+      <button onClick={onBack} style={{ fontFamily: 'var(--ui)', fontSize: 12, color: 'var(--t2)', background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: 28 }}>
+        ← History
+      </button>
+
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 28 }}>
+        <ClsLabel cls={s.cls} size="md" />
+        {s.overridden && <span style={{ fontSize: 11, color: 'var(--t3)' }}>overridden from {s.originalCls}</span>}
+        <div style={{ fontSize: 11, color: 'var(--t3)', marginLeft: 'auto' }}>{s.date}</div>
+      </div>
+
+      {/* Framing */}
+      <div style={{ marginBottom: 18 }}>
+        <div style={{ ...T.eyebrow, marginBottom: 8 }}>Your framing</div>
+        <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '14px 16px', fontSize: 14, lineHeight: 1.78, color: 'var(--t1)', fontWeight: 300, whiteSpace: 'pre-wrap' }}>
+          {s.framing}
+        </div>
+      </div>
+
+      {/* AI output */}
+      {s.ai && (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ ...T.eyebrow, marginBottom: 8 }}>AI output</div>
+          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 'var(--r)', padding: '14px 16px', fontSize: 14, lineHeight: 1.78, color: 'var(--t2)', fontWeight: 300, whiteSpace: 'pre-wrap' }}>
+            {s.ai}
+          </div>
+        </div>
+      )}
+
+      {/* Behavioral signals */}
+      <div style={{ display: 'flex', gap: 32, padding: '18px 0', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', marginBottom: 24, flexWrap: 'wrap' }}>
+        {[
+          ['Framing time',     fmtTime(s.signals.framingTimeSeconds)],
+          ['Acceptance time',  fmtTime(s.signals.timeToAcceptanceSeconds)],
+          ['Challenges',       s.signals.challengeCount],
+          ['Framing length',   `${s.signals.framingLength} chars`],
+        ].map(([lbl, val]) => (
+          <div key={lbl}>
+            <div style={{ fontFamily: 'var(--dp)', fontSize: 20, color: 'var(--t2)', lineHeight: 1, marginBottom: 4 }}>{val}</div>
+            <div style={T.eyebrow}>{lbl}</div>
+          </div>
+        ))}
+        {s.overridden && (
+          <div>
+            <div style={{ fontFamily: 'var(--dp)', fontSize: 20, color: 'var(--t2)', lineHeight: 1, marginBottom: 4 }}>Yes</div>
+            <div style={T.eyebrow}>Classification overridden</div>
+          </div>
+        )}
+      </div>
+
+      {s.note && (
+        <div style={{ fontSize: 13, color: 'var(--t2)', fontWeight: 300, fontStyle: 'italic', marginBottom: 24, lineHeight: 1.65 }}>
+          "{s.note}"
+        </div>
+      )}
+
+      {/* Revisit panel */}
+      <div>
+        <div style={{ ...T.eyebrow, marginBottom: 12 }}>How does this hold up?</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {['Affirm', 'Refine', 'Reverse'].map(opt => (
+            <button
+              key={opt}
+              onClick={() => { setRv(opt); onRevisit(opt); }}
+              style={{
+                flex: 1, fontFamily: 'var(--ui)', fontSize: 13, fontWeight: 500,
+                color: rv === opt ? 'var(--bg)' : 'var(--t2)',
+                background: rv === opt ? 'var(--t1)' : 'var(--surface)',
+                border: `1px solid ${rv === opt ? 'var(--t1)' : 'var(--border)'}`,
+                borderRadius: 'var(--r)', padding: '13px 0', cursor: 'pointer',
+                letterSpacing: '0.03em', transition: 'all 0.15s',
+              }}
+            >
+              {opt}
+            </button>
+          ))}
+        </div>
+        {rv && (
+          <div style={{ marginTop: 10, fontSize: 11, color: 'var(--t3)', fontWeight: 300 }}>
+            Revisit logged: <span style={{ color: 'var(--t2)' }}>{rv}</span>
+            {s.revisit?.timestamp && <span> · {new Date(s.revisit.timestamp).toLocaleDateString()}</span>}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────
+   APP ROOT
+   ───────────────────────────────────────────── */
+function App() {
+  const [user, setUser]       = useState(() => load('centaur_user', null));
+  const [sessions, setSessions] = useState(() => load('centaur_sessions', SEED));
+  const [view, setView]       = useState(() => load('centaur_view', 'dashboard'));
+  const [simWeek, setSimWeek] = useState(5);
+  const [simOpen, setSimOpen] = useState(false);
+  const walkthroughSeen = load('centaur_walkthrough_seen', false);
+  const isFirstSession = sessions.filter(s => s.week === simWeek).length === 0 && !walkthroughSeen;
+
+  useEffect(() => save('centaur_view', view), [view]);
+
+  function completeOnboarding(role) {
+    const u = { role, onboarded: true, startDate: new Date().toISOString() };
+    setUser(u);
+    save('centaur_user', u);
+    setView('session');
+  }
+
+  if (!user) return <Onboarding onComplete={completeOnboarding} />;
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh', background: 'var(--bg)', overflow: 'hidden' }}>
+      <TopNav
+        view={view}
+        setView={v => { setView(v); setSimOpen(false); }}
+        onSimOpen={() => setSimOpen(o => !o)}
+        onGuide={() => window.open('User Guide.html', '_blank')}
+      />
+      {simOpen && (
+        <WeekSimPanel simWeek={simWeek} setSimWeek={setSimWeek} onClose={() => setSimOpen(false)} />
+      )}
+      <main style={{ flex: 1, overflowY: 'auto', padding: '36px 48px 64px' }}>
+        {view === 'dashboard' && <Dashboard sessions={sessions} simWeek={simWeek} setView={setView} />}
+        {view === 'session'   && <NewSession sessions={sessions} setSessions={setSessions} simWeek={simWeek} setView={setView} showWalkthrough={!walkthroughSeen} />}
+        {view === 'history'   && <History sessions={sessions} setSessions={setSessions} />}
+      </main>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

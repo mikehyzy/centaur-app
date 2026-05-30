@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centaur — Brand Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=IBM+Plex+Mono:wght@0,400;0,500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0c0f14;
+      --surface:  #131c26;
+      --surface2: #182131;
+      --surface3: #1d2838;
+      --border:   #1d2b3a;
+      --borderhi: #273950;
+      --t1: #d8e3ef;
+      --t2: #647d95;
+      --t3: #3a5060;
+      --accent:   #2ecbb5;
+      --direct:   oklch(0.70 0.065 215);
+      --delegate: oklch(0.70 0.065 170);
+      --defer:    oklch(0.70 0.065 265);
+      --ui:   'IBM Plex Sans', ui-sans-serif, sans-serif;
+      --mono: 'IBM Plex Mono', ui-monospace, monospace;
+      --dp:   'Instrument Serif', Georgia, serif;
+      --r: 3px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--t1);
+      font-family: var(--ui);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: sticky;
+      top: 0;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 52px;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      z-index: 50;
+    }
+    .nav-logo { font-size: 13px; font-weight: 500; letter-spacing: 0.26em; text-transform: uppercase; color: var(--t1); text-decoration: none; }
+    .nav-links { display: flex; gap: 0; list-style: none; }
+    .nav-links a {
+      font-size: 12px;
+      color: var(--t2);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      padding: 0 16px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      border-bottom: 1px solid transparent;
+      transition: color 0.14s;
+    }
+    .nav-links a:hover { color: var(--t1); }
+    .nav-right { display: flex; gap: 16px; }
+    .nav-link-sm { font-size: 11px; color: var(--t3); text-decoration: none; transition: color 0.14s; }
+    .nav-link-sm:hover { color: var(--t2); }
+
+    /* ── LAYOUT ── */
+    .page { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 36px 0;
+      position: sticky;
+      top: 56px;
+      height: calc(100vh - 56px);
+      overflow-y: auto;
+    }
+    .sidebar-section { margin-bottom: 28px; }
+    .sidebar-label {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--t3);
+      padding: 0 24px;
+      margin-bottom: 8px;
+    }
+    .sidebar-link {
+      display: block;
+      font-size: 12px;
+      color: var(--t2);
+      text-decoration: none;
+      padding: 7px 24px;
+      letter-spacing: 0.02em;
+      transition: color 0.12s, background 0.12s;
+    }
+    .sidebar-link:hover { color: var(--t1); background: var(--surface); }
+    .content { padding: 56px 64px 96px; max-width: 960px; }
+
+    /* ── SECTION ── */
+    .sec { margin-bottom: 80px; }
+    .sec-title {
+      font-family: var(--dp);
+      font-size: 38px;
+      line-height: 1.08;
+      color: var(--t1);
+      margin-bottom: 8px;
+    }
+    .sec-sub {
+      font-size: 13px;
+      color: var(--t2);
+      font-weight: 300;
+      line-height: 1.70;
+      max-width: 560px;
+      margin-bottom: 40px;
+    }
+    .rule { height: 1px; background: var(--border); margin-bottom: 36px; }
+    .label {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 16px;
+    }
+
+    /* ── COLORS ── */
+    .palette-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-bottom: 40px;
+    }
+    .swatch {
+      border-radius: var(--r);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .swatch-color { height: 72px; }
+    .swatch-info { padding: 10px 12px; background: var(--surface); }
+    .swatch-name { font-size: 11px; font-weight: 500; color: var(--t1); margin-bottom: 4px; }
+    .swatch-val { font-family: var(--mono); font-size: 10px; color: var(--t3); }
+
+    /* ── TYPOGRAPHY ── */
+    .type-specimen { margin-bottom: 40px; }
+    .type-row {
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border);
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 32px;
+      align-items: start;
+    }
+    .type-meta { display: flex; flex-direction: column; gap: 4px; padding-top: 4px; }
+    .type-meta-name { font-size: 10px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; color: var(--t3); }
+    .type-meta-val { font-family: var(--mono); font-size: 10px; color: var(--t3); }
+
+    /* ── CLASSIFICATIONS ── */
+    .cls-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 36px;
+    }
+    .cls-specimen {
+      background: var(--surface);
+      padding: 28px 24px 32px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .cls-spec-tag { font-size: 9px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--t3); }
+    .cls-spec-word-direct {
+      font-family: var(--ui);
+      font-weight: 600;
+      font-size: 36px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--direct);
+      line-height: 1;
+    }
+    .cls-spec-word-delegate {
+      font-family: var(--dp);
+      font-size: 36px;
+      font-weight: 400;
+      color: var(--delegate);
+      line-height: 1;
+    }
+    .cls-spec-word-defer {
+      font-family: var(--dp);
+      font-size: 36px;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--defer);
+      line-height: 1;
+    }
+    .cls-spec-rule { font-family: var(--mono); font-size: 10px; color: var(--t3); line-height: 1.6; }
+
+    /* Inline sizes */
+    .cls-inline-row {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 16px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .cls-inline-row:first-child { border-top: 1px solid var(--border); }
+    .cls-inline-lbl { font-size: 10px; color: var(--t3); width: 64px; }
+    .cls-sm-direct  { font-family: var(--ui); font-weight: 600; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--direct); }
+    .cls-sm-delegate{ font-family: var(--dp); font-size: 16px; color: var(--delegate); }
+    .cls-sm-defer   { font-family: var(--dp); font-size: 16px; font-style: italic; color: var(--defer); }
+    .cls-md-direct  { font-family: var(--ui); font-weight: 600; font-size: 20px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--direct); }
+    .cls-md-delegate{ font-family: var(--dp); font-size: 24px; color: var(--delegate); }
+    .cls-md-defer   { font-family: var(--dp); font-size: 24px; font-style: italic; color: var(--defer); }
+    .cls-lg-direct  { font-family: var(--ui); font-weight: 600; font-size: 52px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--direct); line-height: 1; }
+    .cls-lg-delegate{ font-family: var(--dp); font-size: 64px; color: var(--delegate); line-height: 1; }
+    .cls-lg-defer   { font-family: var(--dp); font-size: 64px; font-style: italic; color: var(--defer); line-height: 1; }
+
+    /* ── COMPONENTS ── */
+    .comp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+    .comp-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .comp-card-hd {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--t3);
+      background: var(--surface2);
+    }
+    .comp-card-body { padding: 24px 20px; }
+
+    /* Buttons */
+    .btn-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+    .btn-primary { display: inline-flex; align-items: center; font-family: var(--ui); font-size: 13px; font-weight: 500; color: var(--bg); background: var(--t1); padding: 10px 20px; border-radius: var(--r); border: none; cursor: pointer; letter-spacing: 0.04em; }
+    .btn-secondary { display: inline-flex; align-items: center; font-family: var(--ui); font-size: 13px; font-weight: 400; color: var(--t2); background: var(--surface3); border: 1px solid var(--border); padding: 10px 20px; border-radius: var(--r); cursor: pointer; letter-spacing: 0.03em; }
+    .btn-ghost-comp { display: inline-flex; align-items: center; font-family: var(--ui); font-size: 13px; font-weight: 400; color: var(--t2); background: none; border: none; cursor: pointer; letter-spacing: 0.03em; }
+    .btn-accent { display: inline-flex; align-items: center; font-family: var(--ui); font-size: 13px; font-weight: 500; color: #0c0f14; background: var(--accent); padding: 10px 20px; border-radius: var(--r); border: none; cursor: pointer; letter-spacing: 0.04em; }
+
+    /* Inputs */
+    .input-demo {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--borderhi);
+      border-radius: var(--r);
+      padding: 10px 14px;
+      color: var(--t1);
+      font-family: var(--ui);
+      font-size: 14px;
+      margin-bottom: 10px;
+      display: block;
+    }
+    .textarea-demo {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--borderhi);
+      border-radius: var(--r);
+      padding: 12px 14px;
+      color: var(--t1);
+      font-family: var(--ui);
+      font-size: 14px;
+      resize: none;
+      display: block;
+      line-height: 1.65;
+      font-weight: 300;
+    }
+
+    /* Session row */
+    .session-row-demo {
+      display: grid;
+      grid-template-columns: 80px 100px 1fr 60px;
+      align-items: center;
+      gap: 16px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .session-row-demo:last-child { border-bottom: none; }
+    .sr-date { font-size: 11px; color: var(--t3); }
+    .sr-excerpt { font-size: 12px; color: var(--t2); font-weight: 300; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sr-time { font-size: 11px; color: var(--t3); text-align: right; }
+
+    /* Drift indicator */
+    .drift-demo {
+      padding: 16px 16px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      display: inline-flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 200px;
+    }
+    .drift-demo-ey { font-size: 9px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--t3); }
+    .drift-demo-reading { display: flex; align-items: center; gap: 10px; }
+    .drift-demo-arrow { font-size: 26px; color: var(--accent); line-height: 1; }
+    .drift-demo-word { font-family: var(--dp); font-size: 24px; color: var(--t1); }
+    .drift-demo-sub { font-size: 10px; color: var(--t3); }
+
+    /* Revisit */
+    .revisit-row { display: flex; gap: 8px; }
+    .revisit-btn { flex: 1; font-family: var(--ui); font-size: 13px; font-weight: 500; color: var(--t2); background: var(--surface); border: 1px solid var(--border); border-radius: var(--r); padding: 12px 0; text-align: center; cursor: pointer; letter-spacing: 0.03em; }
+    .revisit-btn.active { color: var(--bg); background: var(--t1); border-color: var(--t1); }
+
+    /* Sparkline placeholder */
+    .spark-demo {
+      display: flex;
+      gap: 24px;
+      padding: 16px 0;
+    }
+    .spark-unit { display: flex; flex-direction: column; gap: 6px; }
+    .spark-unit-lbl { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--t3); }
+
+    /* Token table */
+    .token-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+    .token-table th { font-size: 9px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--t3); text-align: left; padding: 0 16px 12px 0; border-bottom: 1px solid var(--border); }
+    .token-table td { font-size: 12px; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--border); color: var(--t2); vertical-align: middle; }
+    .token-table td:first-child { color: var(--t1); font-family: var(--mono); font-size: 11px; }
+    .token-table tr:last-child td { border-bottom: none; }
+    .token-dot { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+  </style>
+</head>
+<body>
+
+  <nav class="nav">
+    <a href="Landing Page.html" class="nav-logo">Centaur</a>
+    <ul class="nav-links">
+      <li><a href="#colors">Colors</a></li>
+      <li><a href="#type">Typography</a></li>
+      <li><a href="#classifications">Classifications</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#tokens">Tokens</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="Product.html" class="nav-link-sm">Product →</a>
+    </div>
+  </nav>
+
+  <div class="page">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Foundation</div>
+        <a href="#colors" class="sidebar-link">Color palette</a>
+        <a href="#type" class="sidebar-link">Typography</a>
+        <a href="#tokens" class="sidebar-link">Design tokens</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">System</div>
+        <a href="#classifications" class="sidebar-link">Classifications</a>
+        <a href="#motion" class="sidebar-link">Motion rules</a>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Components</div>
+        <a href="#components" class="sidebar-link">Buttons</a>
+        <a href="#inputs" class="sidebar-link">Inputs</a>
+        <a href="#session-row" class="sidebar-link">Session row</a>
+        <a href="#drift" class="sidebar-link">Drift indicator</a>
+        <a href="#sparklines" class="sidebar-link">Sparklines</a>
+        <a href="#revisit" class="sidebar-link">Revisit panel</a>
+      </div>
+    </aside>
+
+    <div class="content">
+
+      <!-- HEADER -->
+      <div style="margin-bottom: 64px;">
+        <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.26em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px;">Brand Guide v1</div>
+        <h1 style="font-family: var(--dp); font-size: 56px; line-height: 1.04; letter-spacing: -0.015em; color: var(--t1); margin-bottom: 16px;">Centaur</h1>
+        <p style="font-size: 16px; line-height: 1.78; color: var(--t2); font-weight: 300; max-width: 520px;">An instrument for judgment. Sage/Magician archetype. Competence and Sophistication dominant. Bloomberg terminal restraint, consumer product legibility.</p>
+      </div>
+
+      <!-- COLORS -->
+      <section class="sec" id="colors">
+        <h2 class="sec-title">Color</h2>
+        <p class="sec-sub">Cool, restrained. Two-color floor — near-black background and cool off-white — with a single teal accent that reads as a measurement indicator. No warm tones. No gradients.</p>
+        <div class="rule"></div>
+
+        <div class="label">Background &amp; surface</div>
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #0c0f14;"></div>
+            <div class="swatch-info"><div class="swatch-name">--bg</div><div class="swatch-val">#0c0f14</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #131c26;"></div>
+            <div class="swatch-info"><div class="swatch-name">--surface</div><div class="swatch-val">#131c26</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #182131;"></div>
+            <div class="swatch-info"><div class="swatch-name">--surface2</div><div class="swatch-val">#182131</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1d2838; border: 1px solid #1d2b3a;"></div>
+            <div class="swatch-info"><div class="swatch-name">--surface3</div><div class="swatch-val">#1d2838</div></div>
+          </div>
+        </div>
+
+        <div class="label">Borders</div>
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #1d2b3a;"></div>
+            <div class="swatch-info"><div class="swatch-name">--border</div><div class="swatch-val">#1d2b3a</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #273950;"></div>
+            <div class="swatch-info"><div class="swatch-name">--borderhi</div><div class="swatch-val">#273950</div></div>
+          </div>
+        </div>
+
+        <div class="label">Text</div>
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #d8e3ef;"></div>
+            <div class="swatch-info"><div class="swatch-name">--t1 (primary)</div><div class="swatch-val">#d8e3ef</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #647d95;"></div>
+            <div class="swatch-info"><div class="swatch-name">--t2 (secondary)</div><div class="swatch-val">#647d95</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: #3a5060;"></div>
+            <div class="swatch-info"><div class="swatch-name">--t3 (muted)</div><div class="swatch-val">#3a5060</div></div>
+          </div>
+        </div>
+
+        <div class="label">Accent &amp; classification</div>
+        <div class="palette-grid">
+          <div class="swatch">
+            <div class="swatch-color" style="background: #2ecbb5;"></div>
+            <div class="swatch-info"><div class="swatch-name">--accent</div><div class="swatch-val">#2ecbb5</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: oklch(0.70 0.065 215);"></div>
+            <div class="swatch-info"><div class="swatch-name">--direct</div><div class="swatch-val">oklch(0.70 0.065 215)</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: oklch(0.70 0.065 170);"></div>
+            <div class="swatch-info"><div class="swatch-name">--delegate</div><div class="swatch-val">oklch(0.70 0.065 170)</div></div>
+          </div>
+          <div class="swatch">
+            <div class="swatch-color" style="background: oklch(0.70 0.065 265);"></div>
+            <div class="swatch-info"><div class="swatch-name">--defer</div><div class="swatch-val">oklch(0.70 0.065 265)</div></div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--t3); font-weight: 300; line-height: 1.65; max-width: 560px; margin-top: 4px;">
+          The three classification colors share identical perceptual lightness (L=0.70) and chroma (C=0.065). Only hue varies. This ensures no color implies a valence — Direct is not "good," Defer is not "bad."
+        </p>
+      </section>
+
+      <!-- TYPOGRAPHY -->
+      <section class="sec" id="type">
+        <h2 class="sec-title">Typography</h2>
+        <p class="sec-sub">Two typefaces. IBM Plex Sans for all interface text — data, labels, navigation, body. Instrument Serif for moments of authority: the classification verdict, the drift indicator, section headings.</p>
+        <div class="rule"></div>
+
+        <div class="type-specimen">
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">Display / Verdict</span>
+              <span class="type-meta-val">Instrument Serif</span>
+              <span class="type-meta-val">400 italic / normal</span>
+            </div>
+            <div style="font-family: var(--dp); font-size: 56px; line-height: 1.04; color: var(--t1); letter-spacing: -0.015em;">An instrument<br><em>for judgment.</em></div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">Section heading</span>
+              <span class="type-meta-val">Instrument Serif</span>
+              <span class="type-meta-val">40px / 400</span>
+            </div>
+            <div style="font-family: var(--dp); font-size: 40px; line-height: 1.08; color: var(--t1);">Is your Defer rate <em>rising?</em></div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">Body</span>
+              <span class="type-meta-val">IBM Plex Sans</span>
+              <span class="type-meta-val">15px / 300</span>
+            </div>
+            <div style="font-size: 15px; line-height: 1.82; color: var(--t2); font-weight: 300; max-width: 520px;">Most tools measure how much you use AI. Centaur measures something different: whether AI is supplementing your reasoning or replacing it. After four weeks, your pattern tells you something true.</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">UI label</span>
+              <span class="type-meta-val">IBM Plex Sans</span>
+              <span class="type-meta-val">12px / 500</span>
+            </div>
+            <div style="font-size: 12px; font-weight: 500; color: var(--t1); letter-spacing: 0.02em;">New session — History — Dashboard</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">Eyebrow</span>
+              <span class="type-meta-val">IBM Plex Sans</span>
+              <span class="type-meta-val">10px / 500 UC</span>
+            </div>
+            <div style="font-size: 10px; font-weight: 500; letter-spacing: 0.26em; text-transform: uppercase; color: var(--t3);">Cognitive instrument · Defer drift · Stage 02</div>
+          </div>
+          <div class="type-row">
+            <div class="type-meta">
+              <span class="type-meta-name">Data / Mono</span>
+              <span class="type-meta-val">IBM Plex Mono</span>
+              <span class="type-meta-val">11px / 400</span>
+            </div>
+            <div style="font-family: var(--mono); font-size: 11px; color: var(--t3); line-height: 1.7;">--bg: #0c0f14 · --accent: #2ecbb5 · font-weight: 500</div>
+          </div>
+          <div class="type-row" style="border-bottom: none;">
+            <div class="type-meta">
+              <span class="type-meta-name">Ratio numerals</span>
+              <span class="type-meta-val">Instrument Serif</span>
+              <span class="type-meta-val">40px / 400</span>
+            </div>
+            <div style="display: flex; gap: 40px; align-items: baseline;">
+              <span style="font-family: var(--dp); font-size: 40px; color: var(--direct); line-height: 1;">34%</span>
+              <span style="font-family: var(--dp); font-size: 40px; color: var(--delegate); line-height: 1;">37%</span>
+              <span style="font-family: var(--dp); font-size: 40px; color: var(--defer); line-height: 1;">29%</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLASSIFICATIONS -->
+      <section class="sec" id="classifications">
+        <h2 class="sec-title">Classifications</h2>
+        <p class="sec-sub">Direct, Delegate, and Defer are the product's primary visual vocabulary. Typographic differentiation is the primary signal — weight, case, and family. Color is secondary, with three perceptually equal, non-valenced hues.</p>
+        <div class="rule"></div>
+
+        <div class="label">Full size — verdict display</div>
+        <div class="cls-grid">
+          <div class="cls-specimen">
+            <div class="cls-spec-tag">Direct</div>
+            <div class="cls-spec-word-direct">DIRECT</div>
+            <div class="cls-spec-rule">IBM Plex Sans<br>600 · uppercase · ls 0.18em</div>
+          </div>
+          <div class="cls-specimen">
+            <div class="cls-spec-tag">Delegate</div>
+            <div class="cls-spec-word-delegate">Delegate</div>
+            <div class="cls-spec-rule">Instrument Serif<br>400 · normal · ls default</div>
+          </div>
+          <div class="cls-specimen">
+            <div class="cls-spec-tag">Defer</div>
+            <div class="cls-spec-word-defer">Defer.</div>
+            <div class="cls-spec-rule">Instrument Serif<br>400 · italic · period appended</div>
+          </div>
+        </div>
+
+        <div class="label" style="margin-top: 40px;">Medium — section headings &amp; detail view</div>
+        <div style="border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 36px; background: var(--surface);">
+          <div class="cls-inline-row">
+            <span class="cls-inline-lbl">Medium</span>
+            <span class="cls-md-direct">DIRECT</span>
+            <span class="cls-md-delegate">Delegate</span>
+            <span class="cls-md-defer">Defer.</span>
+          </div>
+          <div class="cls-inline-row">
+            <span class="cls-inline-lbl">Small</span>
+            <span class="cls-sm-direct">DIRECT</span>
+            <span class="cls-sm-delegate">Delegate</span>
+            <span class="cls-sm-defer">Defer.</span>
+          </div>
+          <div class="cls-inline-row" style="border-bottom: none;">
+            <span class="cls-inline-lbl">Verdict</span>
+            <span class="cls-lg-direct">DIRECT</span>
+            <span class="cls-lg-delegate" style="margin-left: 32px;">Delegate</span>
+            <span class="cls-lg-defer" style="margin-left: 32px;">Defer.</span>
+          </div>
+        </div>
+
+        <p style="font-size: 12px; color: var(--t3); font-weight: 300; line-height: 1.65; max-width: 560px;">
+          <strong style="color: var(--t2); font-weight: 500;">Rule:</strong> Never use green for Direct or red for Defer. Classifications are measurements, not judgments. The visual system communicates difference, not hierarchy.
+        </p>
+      </section>
+
+      <!-- COMPONENTS -->
+      <section class="sec" id="components">
+        <h2 class="sec-title">Components</h2>
+        <p class="sec-sub">Production-ready UI components. All follow the instrument aesthetic: tight radius, muted surfaces, no decorative shadows.</p>
+        <div class="rule"></div>
+
+        <div class="label">Buttons</div>
+        <div class="comp-grid">
+          <div class="comp-card">
+            <div class="comp-card-hd">Primary</div>
+            <div class="comp-card-body">
+              <div class="btn-row">
+                <button class="btn-primary">Start tracking</button>
+                <button class="btn-primary" style="opacity:0.5; cursor:not-allowed;">Disabled</button>
+              </div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--t3); margin-top: 16px;">bg: --t1 · color: --bg · fw: 500 · ls: 0.04em</div>
+            </div>
+          </div>
+          <div class="comp-card">
+            <div class="comp-card-hd">Secondary &amp; ghost</div>
+            <div class="comp-card-body">
+              <div class="btn-row">
+                <button class="btn-secondary">Continue</button>
+                <button class="btn-ghost-comp">← Back</button>
+              </div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--t3); margin-top: 16px;">secondary: bg --surface3 · ghost: bg none</div>
+            </div>
+          </div>
+          <div class="comp-card">
+            <div class="comp-card-hd">Accent (data state change only)</div>
+            <div class="comp-card-body">
+              <div class="btn-row">
+                <button class="btn-accent">Saved ✓</button>
+              </div>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--t3); margin-top: 16px;">Use only to signal confirmed state change</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="label" id="inputs" style="margin-top: 40px;">Inputs</div>
+        <div class="comp-grid">
+          <div class="comp-card">
+            <div class="comp-card-hd">Text input</div>
+            <div class="comp-card-body">
+              <input class="input-demo" placeholder="Enter session topic…" style="outline:none;">
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--t3);">border: 1px --borderhi · focus: border --t2</div>
+            </div>
+          </div>
+          <div class="comp-card">
+            <div class="comp-card-hd">Textarea (framing gate)</div>
+            <div class="comp-card-body">
+              <textarea class="textarea-demo" rows="4" placeholder="Write your reasoning here…" style="outline:none;"></textarea>
+              <div style="font-family: var(--mono); font-size: 10px; color: var(--t3); margin-top: 8px;">fw: 300 · lh: 1.72 · resize: none</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="label" id="session-row" style="margin-top: 40px;">Session row (history list)</div>
+        <div class="comp-card" style="margin-bottom: 24px;">
+          <div class="comp-card-hd">4-column grid: date · classification · excerpt · framing time</div>
+          <div>
+            <div class="session-row-demo">
+              <span class="sr-date">May 29</span>
+              <span class="cls-sm-delegate">Delegate</span>
+              <span class="sr-excerpt">Exploring whether to restructure the product roadmap before the Series B close…</span>
+              <span class="sr-time">4m 12s</span>
+            </div>
+            <div class="session-row-demo">
+              <span class="sr-date">May 28</span>
+              <span class="cls-sm-direct">DIRECT</span>
+              <span class="sr-excerpt">Working through the pricing model for the enterprise tier without AI assistance…</span>
+              <span class="sr-time">8m 45s</span>
+            </div>
+            <div class="session-row-demo">
+              <span class="sr-date">May 28</span>
+              <span class="cls-sm-defer">Defer.</span>
+              <span class="sr-excerpt">Drafted the Q3 OKRs based on AI output with minimal modification…</span>
+              <span class="sr-time">1m 20s</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="label" id="drift" style="margin-top: 40px;">Drift indicator</div>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px;">
+          <div class="drift-demo">
+            <div class="drift-demo-ey">Defer drift</div>
+            <div class="drift-demo-reading">
+              <span class="drift-demo-arrow">↑</span>
+              <div>
+                <div class="drift-demo-word">Rising</div>
+                <div class="drift-demo-sub">+8 pts over 4 weeks</div>
+              </div>
+            </div>
+          </div>
+          <div class="drift-demo">
+            <div class="drift-demo-ey">Defer drift</div>
+            <div class="drift-demo-reading">
+              <span class="drift-demo-arrow" style="color: var(--t2);">→</span>
+              <div>
+                <div class="drift-demo-word">Stable</div>
+                <div class="drift-demo-sub">±1 pt over 4 weeks</div>
+              </div>
+            </div>
+          </div>
+          <div class="drift-demo">
+            <div class="drift-demo-ey">Defer drift</div>
+            <div class="drift-demo-reading">
+              <span class="drift-demo-arrow" style="color: var(--delegate);">↓</span>
+              <div>
+                <div class="drift-demo-word">Falling</div>
+                <div class="drift-demo-sub">−5 pts over 4 weeks</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size: 12px; color: var(--t3); font-weight: 300; line-height: 1.65; max-width: 500px; margin-bottom: 40px;">Arrow color: ↑ accent (not "bad"), → t2, ↓ --delegate. No color implies judgment — all three are neutral instrument readings.</p>
+
+        <div class="label" id="sparklines" style="margin-top: 0;">Sparklines</div>
+        <div class="comp-card" style="margin-bottom: 24px;">
+          <div class="comp-card-hd">SVG polyline · 1.5px stroke · preserveAspectRatio="none"</div>
+          <div class="comp-card-body">
+            <div class="spark-demo">
+              <div class="spark-unit">
+                <div class="spark-unit-lbl">Direct · 4wk</div>
+                <svg width="120" height="36" viewBox="0 0 120 36" fill="none">
+                  <polyline points="8,10 38,14 68,17 98,20 112,23" stroke="var(--direct)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </div>
+              <div class="spark-unit">
+                <div class="spark-unit-lbl">Delegate · 4wk</div>
+                <svg width="120" height="36" viewBox="0 0 120 36" fill="none">
+                  <polyline points="8,13 38,11 68,16 98,18 112,18" stroke="var(--delegate)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </div>
+              <div class="spark-unit">
+                <div class="spark-unit-lbl">Defer · 4wk ↑ signal</div>
+                <svg width="120" height="36" viewBox="0 0 120 36" fill="none">
+                  <polyline points="8,26 38,22 68,16 98,10 112,7" stroke="var(--defer)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                  <circle cx="112" cy="7" r="2.5" fill="var(--defer)"></circle>
+                </svg>
+              </div>
+            </div>
+            <div style="font-family: var(--mono); font-size: 10px; color: var(--t3);">Terminal dot only on the signal sparkline (Defer, drift view). All others: line only.</div>
+          </div>
+        </div>
+
+        <div class="label" id="revisit" style="margin-top: 40px;">Revisit panel</div>
+        <div class="comp-card" style="margin-bottom: 40px; max-width: 480px;">
+          <div class="comp-card-hd">Three equally-weighted options — no default, no hierarchy</div>
+          <div class="comp-card-body">
+            <div style="font-size: 9px; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--t3); margin-bottom: 12px;">How does this hold up?</div>
+            <div class="revisit-row">
+              <button class="revisit-btn active">Affirm</button>
+              <button class="revisit-btn">Refine</button>
+              <button class="revisit-btn">Reverse</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MOTION -->
+      <section class="sec" id="motion">
+        <h2 class="sec-title">Motion</h2>
+        <p class="sec-sub">Functional only. If motion does not signal state change, it does not happen.</p>
+        <div class="rule"></div>
+        <table class="token-table">
+          <thead><tr><th>Use</th><th>Animation</th><th>Duration</th><th>Easing</th></tr></thead>
+          <tbody>
+            <tr><td>State transition (stage 1→2→3)</td><td>Opacity 0→1</td><td>200ms</td><td>ease</td></tr>
+            <tr><td>Session save confirmation</td><td>bg color: --t1 → --accent</td><td>200ms</td><td>ease</td></tr>
+            <tr><td>Verdict word cycle (landing page)</td><td>Opacity fade 0→1</td><td>380ms</td><td>ease</td></tr>
+            <tr><td>Row hover</td><td>bg: --surface → --surface2</td><td>120ms</td><td>ease</td></tr>
+            <tr><td>Scroll reveal (landing only)</td><td>opacity + translateY(18px)</td><td>600ms</td><td>ease</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size: 12px; color: var(--t3); font-weight: 300; max-width: 480px; line-height: 1.65;">
+          <strong style="color: var(--t2); font-weight: 500;">Prohibited:</strong> Entrance animations on static content. Hover micro-animations on informational elements. Decorative particle or flow effects. Any animation without a functional purpose.
+        </p>
+      </section>
+
+      <!-- TOKENS -->
+      <section class="sec" id="tokens">
+        <h2 class="sec-title">Design tokens</h2>
+        <p class="sec-sub">Full CSS custom property reference. All tokens are prefixed and documented for handoff to Claude Code or any CSS framework.</p>
+        <div class="rule"></div>
+        <table class="token-table">
+          <thead><tr><th>Token</th><th>Value</th><th style="width:14px;"></th><th>Usage</th></tr></thead>
+          <tbody>
+            <tr><td>--bg</td><td>#0c0f14</td><td><span class="token-dot" style="background:#0c0f14; border: 1px solid #1d2b3a;"></span></td><td style="color:var(--t2);">Page background</td></tr>
+            <tr><td>--surface</td><td>#131c26</td><td><span class="token-dot" style="background:#131c26;"></span></td><td style="color:var(--t2);">Cards, panels</td></tr>
+            <tr><td>--surface2</td><td>#182131</td><td><span class="token-dot" style="background:#182131;"></span></td><td style="color:var(--t2);">Elevated surfaces, inputs</td></tr>
+            <tr><td>--surface3</td><td>#1d2838</td><td><span class="token-dot" style="background:#1d2838;"></span></td><td style="color:var(--t2);">Disabled states</td></tr>
+            <tr><td>--border</td><td>#1d2b3a</td><td><span class="token-dot" style="background:#1d2b3a;"></span></td><td style="color:var(--t2);">Subtle dividers</td></tr>
+            <tr><td>--borderhi</td><td>#273950</td><td><span class="token-dot" style="background:#273950;"></span></td><td style="color:var(--t2);">Input borders, focus rings</td></tr>
+            <tr><td>--t1</td><td>#d8e3ef</td><td><span class="token-dot" style="background:#d8e3ef;"></span></td><td style="color:var(--t2);">Primary text, headings</td></tr>
+            <tr><td>--t2</td><td>#647d95</td><td><span class="token-dot" style="background:#647d95;"></span></td><td style="color:var(--t2);">Body copy, secondary labels</td></tr>
+            <tr><td>--t3</td><td>#3a5060</td><td><span class="token-dot" style="background:#3a5060;"></span></td><td style="color:var(--t2);">Eyebrows, muted metadata</td></tr>
+            <tr><td>--accent</td><td>#2ecbb5</td><td><span class="token-dot" style="background:#2ecbb5;"></span></td><td style="color:var(--t2);">Drift arrows, active states, saved confirmation</td></tr>
+            <tr><td>--direct</td><td>oklch(0.70 0.065 215)</td><td><span class="token-dot" style="background:oklch(0.70 0.065 215);"></span></td><td style="color:var(--t2);">Direct classification — all uses</td></tr>
+            <tr><td>--delegate</td><td>oklch(0.70 0.065 170)</td><td><span class="token-dot" style="background:oklch(0.70 0.065 170);"></span></td><td style="color:var(--t2);">Delegate classification — all uses</td></tr>
+            <tr><td>--defer</td><td>oklch(0.70 0.065 265)</td><td><span class="token-dot" style="background:oklch(0.70 0.065 265);"></span></td><td style="color:var(--t2);">Defer classification — all uses</td></tr>
+            <tr><td>--ui</td><td>'IBM Plex Sans'</td><td></td><td style="color:var(--t2);">All interface text</td></tr>
+            <tr><td>--dp</td><td>'Instrument Serif'</td><td></td><td style="color:var(--t2);">Verdicts, headings, numerals</td></tr>
+            <tr><td>--mono</td><td>'IBM Plex Mono'</td><td></td><td style="color:var(--t2);">Token values, code references</td></tr>
+            <tr><td>--r</td><td>3px</td><td></td><td style="color:var(--t2);">Border radius (tight throughout)</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+  </div>
+
+</body>
+</html>
