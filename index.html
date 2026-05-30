@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Centaur — An instrument for judgment</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:       #0c0f14;
+      --surface:  #131c26;
+      --surface2: #182131;
+      --border:   #1d2b3a;
+      --borderhi: #273950;
+      --t1: #d8e3ef;
+      --t2: #647d95;
+      --t3: #3a5060;
+      --accent:   #2ecbb5;
+      --direct:   oklch(0.70 0.065 215);
+      --delegate: oklch(0.70 0.065 170);
+      --defer:    oklch(0.70 0.065 265);
+      --ui: 'IBM Plex Sans', ui-sans-serif, sans-serif;
+      --dp: 'Instrument Serif', Georgia, serif;
+      --r: 3px;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--t1);
+      font-family: var(--ui);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    .nav {
+      position: fixed;
+      inset: 0 0 auto;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 52px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(12,15,20,0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      z-index: 100;
+    }
+    .nav-logo {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--t1);
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 36px;
+      list-style: none;
+    }
+    .nav-links a {
+      font-size: 12px;
+      color: var(--t2);
+      text-decoration: none;
+      letter-spacing: 0.03em;
+      transition: color 0.14s;
+    }
+    .nav-links a:hover { color: var(--t1); }
+    .nav-right { display: flex; align-items: center; gap: 20px; }
+    .nav-in {
+      font-size: 12px;
+      color: var(--t2);
+      text-decoration: none;
+      transition: color 0.14s;
+    }
+    .nav-in:hover { color: var(--t1); }
+    .nav-cta {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--t1);
+      padding: 7px 17px;
+      border-radius: var(--r);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: opacity 0.14s;
+    }
+    .nav-cta:hover { opacity: 0.82; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 55fr 45fr;
+      gap: 64px;
+      align-items: center;
+      padding: 112px 52px 80px;
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+    .hero-eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 24px;
+    }
+    .hero-h1 {
+      font-family: var(--dp);
+      font-size: clamp(52px, 5.5vw, 80px);
+      line-height: 1.02;
+      letter-spacing: -0.018em;
+      color: var(--t1);
+      margin-bottom: 24px;
+    }
+    .hero-h1 em { font-style: italic; color: var(--t2); }
+    .hero-lead {
+      font-size: 17px;
+      line-height: 1.80;
+      color: var(--t2);
+      font-weight: 300;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+    .hero-btns { display: flex; align-items: center; gap: 28px; }
+    .btn-solid {
+      display: inline-flex;
+      align-items: center;
+      font-family: var(--ui);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--bg);
+      background: var(--t1);
+      padding: 12px 24px;
+      border-radius: var(--r);
+      text-decoration: none;
+      letter-spacing: 0.04em;
+      transition: opacity 0.14s;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-solid:hover { opacity: 0.82; }
+    .btn-ghost {
+      font-size: 13px;
+      color: var(--t2);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      transition: color 0.14s;
+    }
+    .btn-ghost:hover { color: var(--t1); }
+
+    /* Classification card */
+    .cls-card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .cls-card-hd {
+      padding: 12px 22px;
+      border-bottom: 1px solid var(--border);
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--t3);
+      background: var(--surface2);
+    }
+    .cls-row {
+      padding: 22px 22px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+    }
+    .cls-row:last-child { border-bottom: none; }
+    .cls-tag {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+    .cls-direct {
+      font-family: var(--ui);
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--direct);
+      line-height: 1;
+    }
+    .cls-delegate {
+      font-family: var(--dp);
+      font-size: 30px;
+      font-weight: 400;
+      color: var(--delegate);
+      line-height: 1;
+    }
+    .cls-defer {
+      font-family: var(--dp);
+      font-size: 30px;
+      font-weight: 400;
+      font-style: italic;
+      color: var(--defer);
+      line-height: 1;
+    }
+    .cls-def {
+      font-size: 12px;
+      color: var(--t2);
+      line-height: 1.55;
+      font-weight: 300;
+    }
+
+    /* ── SECTIONS ── */
+    .sec { border-top: 1px solid var(--border); }
+    .wrap {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 88px 52px;
+    }
+    .eyebrow {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 20px;
+    }
+    .sec-h2 {
+      font-family: var(--dp);
+      font-size: clamp(40px, 4vw, 58px);
+      line-height: 1.07;
+      color: var(--t1);
+      margin-bottom: 18px;
+    }
+    .sec-h2 em { font-style: italic; color: var(--t2); }
+    .sec-lead {
+      font-size: 15px;
+      line-height: 1.82;
+      color: var(--t2);
+      font-weight: 300;
+      max-width: 480px;
+    }
+
+    /* ── SIGNAL ── */
+    .signal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1.12fr;
+      gap: 80px;
+      align-items: start;
+    }
+    .signal-text { display: flex; flex-direction: column; gap: 0; }
+    .signal-text p {
+      font-size: 15px;
+      line-height: 1.82;
+      color: var(--t2);
+      font-weight: 300;
+      margin-top: 16px;
+    }
+
+    /* Dashboard mock */
+    .dash {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      background: var(--surface);
+    }
+    .dash-hd {
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dash-hd-t {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+    .dash-hd-r { font-size: 10px; color: var(--t3); }
+
+    /* Drift block */
+    .drift-blk {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .drift-ey {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 7px;
+    }
+    .drift-reading { display: flex; align-items: center; gap: 10px; }
+    .drift-arrow { font-size: 30px; color: var(--accent); line-height: 1; }
+    .drift-word {
+      font-family: var(--dp);
+      font-size: 28px;
+      color: var(--t1);
+      line-height: 1;
+    }
+    .drift-sub { font-size: 10px; color: var(--t3); margin-top: 3px; }
+
+    /* Ratio row */
+    .ratio-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+    }
+    .ratio-cell { padding: 16px 20px; }
+    .ratio-cell + .ratio-cell { border-left: 1px solid var(--border); }
+    .ratio-num {
+      font-family: var(--dp);
+      font-size: 36px;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .ratio-num.d { color: var(--direct); }
+    .ratio-num.dl { color: var(--delegate); }
+    .ratio-num.df { color: var(--defer); }
+    .ratio-lbl {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.20em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    /* Sparkline row */
+    .spark-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      padding: 14px 20px 16px;
+      gap: 12px;
+    }
+    .spark-cell { display: flex; flex-direction: column; gap: 5px; }
+    .spark-lbl {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 48px;
+    }
+    .step {
+      background: var(--surface);
+      padding: 32px 28px 36px;
+    }
+    .step-n {
+      font-size: 9px;
+      font-weight: 500;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 18px;
+    }
+    .step-h {
+      font-family: var(--dp);
+      font-size: 27px;
+      line-height: 1.18;
+      color: var(--t1);
+      margin-bottom: 14px;
+    }
+    .step-b {
+      font-size: 13px;
+      line-height: 1.75;
+      color: var(--t2);
+      font-weight: 300;
+    }
+    .step-b + .step-b { margin-top: 10px; }
+
+    /* ── VERDICT ── */
+    .verdict-sec { text-align: center; }
+    .verdict-sec .wrap { padding: 104px 52px; }
+    .verdict-ey {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--t3);
+      margin-bottom: 0;
+    }
+    #verdict-display {
+      font-family: var(--dp);
+      font-size: clamp(80px, 11vw, 148px);
+      line-height: 1;
+      letter-spacing: -0.025em;
+      color: var(--t1);
+      margin: 36px 0 0;
+      transition: opacity 0.38s ease, color 0.38s ease;
+      display: block;
+    }
+    #verdict-display.v-direct {
+      font-family: var(--ui);
+      font-weight: 600;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      font-size: clamp(60px, 8vw, 108px);
+      color: var(--direct);
+    }
+    #verdict-display.v-delegate {
+      font-family: var(--dp);
+      font-style: normal;
+      color: var(--delegate);
+    }
+    #verdict-display.v-defer {
+      font-family: var(--dp);
+      font-style: italic;
+      color: var(--defer);
+    }
+    .verdict-period { color: var(--t3); }
+    .verdict-sub {
+      font-size: 15px;
+      line-height: 1.75;
+      color: var(--t2);
+      margin: 28px auto 0;
+      max-width: 340px;
+      font-weight: 300;
+    }
+    .verdict-meta {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 48px;
+      margin-top: 52px;
+      padding-top: 36px;
+      border-top: 1px solid var(--border);
+    }
+    .vm-val {
+      font-family: var(--dp);
+      font-size: 24px;
+      color: var(--t2);
+      line-height: 1;
+      margin-bottom: 5px;
+    }
+    .vm-lbl {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+
+    /* ── CTA ── */
+    .cta-sec { text-align: center; }
+    .cta-sec .wrap { padding: 104px 52px 112px; }
+    .cta-h2 {
+      font-family: var(--dp);
+      font-size: clamp(44px, 5vw, 68px);
+      line-height: 1.06;
+      color: var(--t1);
+      margin-bottom: 20px;
+    }
+    .cta-h2 em { font-style: italic; color: var(--t2); }
+    .cta-sub {
+      font-size: 15px;
+      color: var(--t2);
+      font-weight: 300;
+      margin-bottom: 40px;
+      max-width: 340px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.78;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 24px 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-logo {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.26em;
+      text-transform: uppercase;
+      color: var(--t3);
+    }
+    .footer-links { display: flex; gap: 28px; list-style: none; }
+    .footer-links a {
+      font-size: 11px;
+      color: var(--t3);
+      text-decoration: none;
+      transition: color 0.14s;
+    }
+    .footer-links a:hover { color: var(--t2); }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(18px);
+      transition: opacity 0.60s ease, transform 0.60s ease;
+    }
+    .reveal.in { opacity: 1; transform: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 960px) {
+      .hero { grid-template-columns: 1fr; padding: 96px 28px 64px; gap: 40px; }
+      .signal-grid { grid-template-columns: 1fr; gap: 40px; }
+      .steps-grid { grid-template-columns: 1fr; }
+      .verdict-meta { gap: 28px; flex-wrap: wrap; }
+      .nav-links { display: none; }
+      .nav { padding: 0 28px; }
+      .wrap { padding: 64px 28px; }
+      .footer { padding: 24px 28px; flex-direction: column; gap: 16px; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="nav" aria-label="Main navigation">
+    <a href="#" class="nav-logo">Centaur</a>
+    <ul class="nav-links">
+      <li><a href="#signal">The signal</a></li>
+      <li><a href="#session">How it works</a></li>
+      <li><a href="#verdict">The verdict</a></li>
+    </ul>
+    <div class="nav-right">
+      <a href="#" class="nav-in">Sign in</a>
+      <a href="Product.html" class="nav-cta">Start tracking</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="hero" data-screen-label="hero">
+    <div>
+      <div class="hero-eyebrow">Cognitive instrument</div>
+      <h1 class="hero-h1">An instrument<br>for <em>judgment.</em></h1>
+      <p class="hero-lead">Centaur classifies every AI session — Direct, Delegate, or Defer — and tracks whether your use of AI is enhancing your reasoning or replacing it.</p>
+      <div class="hero-btns">
+        <a href="Product.html" class="btn-solid">Start tracking</a>
+        <a href="#signal" class="btn-ghost">See how it works →</a>
+      </div>
+    </div>
+    <div>
+      <div class="cls-card">
+        <div class="cls-card-hd">Classification system</div>
+        <div class="cls-row">
+          <div class="cls-tag">01 — Your reasoning led</div>
+          <div class="cls-direct">DIRECT</div>
+          <div class="cls-def">You worked through it. AI was not the source of the answer.</div>
+        </div>
+        <div class="cls-row">
+          <div class="cls-tag">02 — You led, AI assisted</div>
+          <div class="cls-delegate">Delegate</div>
+          <div class="cls-def">You framed the problem. AI was a tool in service of your judgment.</div>
+        </div>
+        <div class="cls-row">
+          <div class="cls-tag">03 — AI led</div>
+          <div class="cls-defer">Defer.</div>
+          <div class="cls-def">You handed it over. AI answered. You accepted.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── THE SIGNAL ── -->
+  <section class="sec" id="signal" data-screen-label="signal">
+    <div class="wrap">
+      <div class="signal-grid">
+
+        <div class="signal-text reveal">
+          <div class="eyebrow">The signal</div>
+          <h2 class="sec-h2">Is your Defer<br>rate <em>rising?</em></h2>
+          <p>Most tools measure how much you use AI. Centaur measures something different: whether AI is supplementing your reasoning or replacing it.</p>
+          <p>After four weeks, the drift indicator shows whether your Defer rate is rising, stable, or falling. That single direction is the signal.</p>
+          <p>No scores. No recommendations. One instrument reading.</p>
+        </div>
+
+        <div class="reveal" style="transition-delay:0.1s">
+          <div class="dash">
+            <div class="dash-hd">
+              <span class="dash-hd-t">Dashboard</span>
+              <span class="dash-hd-r">Week 6 · 34 sessions</span>
+            </div>
+
+            <div class="drift-blk">
+              <div>
+                <div class="drift-ey">Defer drift</div>
+                <div class="drift-reading">
+                  <span class="drift-arrow">↑</span>
+                  <div>
+                    <div class="drift-word">Rising</div>
+                    <div class="drift-sub">+8 pts over 4 weeks</div>
+                  </div>
+                </div>
+              </div>
+              <svg width="112" height="44" viewBox="0 0 112 44" fill="none" aria-hidden="true">
+                <polyline points="6,38 34,30 62,20 100,8" stroke="var(--defer)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"></polyline>
+                <circle cx="100" cy="8" r="2.5" fill="var(--defer)"></circle>
+              </svg>
+            </div>
+
+            <div class="ratio-row">
+              <div class="ratio-cell">
+                <div class="ratio-num d">34%</div>
+                <div class="ratio-lbl">Direct</div>
+              </div>
+              <div class="ratio-cell">
+                <div class="ratio-num dl">37%</div>
+                <div class="ratio-lbl">Delegate</div>
+              </div>
+              <div class="ratio-cell">
+                <div class="ratio-num df">29%</div>
+                <div class="ratio-lbl">Defer</div>
+              </div>
+            </div>
+
+            <div class="spark-row">
+              <div class="spark-cell">
+                <div class="spark-lbl">Direct · 4wk</div>
+                <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" fill="none">
+                  <polyline points="8,10 30,13 55,16 78,19 92,22" stroke="var(--direct)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </div>
+              <div class="spark-cell">
+                <div class="spark-lbl">Delegate · 4wk</div>
+                <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" fill="none">
+                  <polyline points="8,13 30,11 55,15 78,17 92,17" stroke="var(--delegate)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </div>
+              <div class="spark-cell">
+                <div class="spark-lbl">Defer · 4wk</div>
+                <svg width="100%" height="32" viewBox="0 0 100 32" preserveAspectRatio="none" fill="none">
+                  <polyline points="8,24 30,21 55,15 78,10 92,8" stroke="var(--defer)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="sec" id="session" data-screen-label="session">
+    <div class="wrap">
+      <div class="reveal">
+        <div class="eyebrow">How it works</div>
+        <h2 class="sec-h2">Three stages.<br><em>One verdict.</em></h2>
+      </div>
+      <div class="steps-grid reveal" style="transition-delay:0.1s">
+        <div class="step">
+          <div class="step-n">Stage 01</div>
+          <h3 class="step-h">Your take<br>first</h3>
+          <p class="step-b">Before you see AI's response, you write your reasoning. One field. No structure. What do you actually think?</p>
+          <p class="step-b">A timer runs invisibly. The time you spend framing is one of the signals Centaur captures.</p>
+        </div>
+        <div class="step">
+          <div class="step-n">Stage 02</div>
+          <h3 class="step-h">Compare<br>the output</h3>
+          <p class="step-b">Paste the AI's response. Your framing stays visible above — you can see the delta between what you thought and what AI produced.</p>
+          <p class="step-b">Select any part of the output to mark friction or challenge.</p>
+        </div>
+        <div class="step">
+          <div class="step-n">Stage 03</div>
+          <h3 class="step-h">The<br>verdict</h3>
+          <p class="step-b">Centaur classifies the session. One word. No score breakdown. An instrument reading settling into place.</p>
+          <p class="step-b">Add a note if you want one. Save. Move on.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── THE VERDICT ── -->
+  <section class="sec verdict-sec" id="verdict" data-screen-label="verdict">
+    <div class="wrap">
+      <div class="verdict-ey">The verdict</div>
+      <span id="verdict-display" class="v-delegate">Delegate<span class="verdict-period">.</span></span>
+      <p class="verdict-sub">One word. No score. No advice.<br>An instrument reading, not a report card.</p>
+      <div class="verdict-meta">
+        <div>
+          <div class="vm-val">4m 12s</div>
+          <div class="vm-lbl">Framing time</div>
+        </div>
+        <div>
+          <div class="vm-val">38s</div>
+          <div class="vm-lbl">Acceptance time</div>
+        </div>
+        <div>
+          <div class="vm-val">2 of 12</div>
+          <div class="vm-lbl">Challenges</div>
+        </div>
+        <div>
+          <div class="vm-val">Session 41</div>
+          <div class="vm-lbl">All time</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="sec cta-sec" data-screen-label="cta">
+    <div class="wrap">
+      <h2 class="cta-h2">Start tracking<br><em>how you think.</em></h2>
+      <p class="cta-sub">Four weeks to your first signal. No recommendations. No scores. Just your pattern.</p>
+      <a href="Product.html" class="btn-solid">Begin your baseline</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <span class="footer-logo">Centaur</span>
+    <ul class="footer-links">
+      <li><a href="Product.html">Product</a></li>
+      <li><a href="Brand Guide.html">Brand guide</a></li>
+    </ul>
+  </footer>
+
+  <script>
+    // Scroll reveal
+    const revEls = document.querySelectorAll('.reveal');
+    const revObs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
+    }, { threshold: 0.10 });
+    revEls.forEach(el => revObs.observe(el));
+
+    // Verdict cycling — only when verdict section is visible
+    const vd = document.getElementById('verdict-display');
+    const verdicts = [
+      { text: 'DIRECT', cls: 'v-direct' },
+      { text: 'Delegate', cls: 'v-delegate' },
+      { text: 'Defer', cls: 'v-defer' }
+    ];
+    let vi = 1;
+    let cycleTimer = null;
+
+    function cycleVerdict() {
+      vd.style.opacity = '0';
+      setTimeout(() => {
+        vi = (vi + 1) % 3;
+        const v = verdicts[vi];
+        vd.className = v.cls;
+        vd.innerHTML = v.text + '<span class="verdict-period">.</span>';
+        vd.style.opacity = '1';
+      }, 380);
+    }
+
+    const vsec = document.getElementById('verdict');
+    const vObs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting && !cycleTimer) {
+          cycleTimer = setInterval(cycleVerdict, 3400);
+        } else if (!e.isIntersecting) {
+          clearInterval(cycleTimer);
+          cycleTimer = null;
+        }
+      });
+    }, { threshold: 0.40 });
+    vObs.observe(vsec);
+
+    // Nav scroll state
+    const nav = document.querySelector('.nav');
+    window.addEventListener('scroll', () => {
+      nav.style.borderBottomColor = window.scrollY > 20
+        ? 'var(--border)' : 'transparent';
+    }, { passive: true });
+  </script>
+</body>
+</html>
